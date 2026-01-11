@@ -1,1 +1,38 @@
- 
+ # Node / Frontend
+node_modules/
+.next/
+dist/
+build/
+npm-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Python / ML
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+.env/
+
+# ML models & datasets (too large for GitHub)
+ml/data/
+ml/models/
+*.h5
+*.pt
+*.pkl
+
+# OS & Editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log

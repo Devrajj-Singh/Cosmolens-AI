@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Milky Way",
+    "type": "Spiral Galaxy",
+    "distance": "0 light-years (home galaxy)",
+    "features": [
+      "Contains billions of stars",
+      "Has a central supermassive black hole",
+      "Includes the Solar System"
+    ],
+    "discovery": "Known since ancient times"
+  },
+  {
+    "name": "Andromeda Galaxy",
+    "type": "Spiral Galaxy",
+    "distance": "2.5 million light-years",
+    "features": [
+      "Nearest large galaxy to the Milky Way",
+      "Contains over one trillion stars",
+      "Will collide with the Milky Way in billions of years"
+    ],
+    "discovery": "Observed by Abd al-Rahman al-Sufi in 964 AD"
+  },
+  {
+    "name": "Orion Nebula",
+    "type": "Diffuse Nebula",
+    "distance": "1,344 light-years",
+    "features": [
+      "Region of active star formation",
+      "Visible to the naked eye",
+      "One of the brightest nebulae in the sky"
+    ],
+    "discovery": "Recorded by Nicolas-Claude Fabri de Peiresc in 1610"
+  }
+]

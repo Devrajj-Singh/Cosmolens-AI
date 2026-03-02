@@ -1,20 +1,40 @@
 # 🌌 CosmoLens AI
 
-CosmoLens AI is a next-generation Space AI Explorer that combines artificial intelligence, 3D visualization, and astronomical data to analyze celestial objects such as galaxies, nebulae, and planets.
+CosmoLens AI is a full-stack Space Intelligence System that combines machine learning, backend APIs, and interactive 3D visualization to explore and analyze astronomical objects.
 
-The project is being built as a full-stack system with:
-- A modern AI-powered web frontend
-- A scalable backend API
-- Machine learning models for astronomy data analysis
+The system is built using a modular architecture to clearly separate frontend, backend, and ML responsibilities.
 
 ---
 
-## 🧠 What CosmoLens AI Does
-- Search and explore space objects
-- View interactive 3D models
-- Get AI-generated scientific insights
-- Compare celestial objects
-- Maintain research chat history
+## 🧠 System Overview
+
+CosmoLens AI consists of two primary modules:
+
+### 1️⃣ AI Explorer
+- Explore galaxies, nebulae, and celestial objects
+- Interactive 3D visualization
+- AI-powered object insights
+- Timeline and research notes
+
+### 2️⃣ Planet Habitability Analyzer (ML-Based)
+- Predict planetary habitability using machine learning
+- Multi-class classification:
+  - Non-Habitable
+  - Potentially Habitable
+  - Habitable
+- Probability distribution output
+- Feature importance ranking
+- Physics-informed feature engineering
+
+---
+
+## 🏗️ Architecture
+
+The project follows a modular full-stack architecture:
+
+Frontend → Backend API → ML Inference → Trained Model
+
+Each layer is isolated and independently maintainable.
 
 ---
 
@@ -23,32 +43,52 @@ The project is being built as a full-stack system with:
 cosmolens-ai/
 │
 ├── frontend/ → Web UI (React / Next.js)
-├── backend/ → API & Auth (Node / Python)
-├── ml/ → AI models & datasets
-├── docs/ → Architecture & API docs
+├── backend/ → API Layer (Routes, Services, Validators)
+├── ml/ → ML Pipeline (Training & Inference)
+├── docs/ → Architecture & API documentation
+├── project_plan.md
 └── README.md
 
 ---
 
-## 🧑‍🚀 Team Workflow
-Each team member works inside their own folder:
-- Frontend developer → `/frontend`
-- Backend developers → `/backend`
-- ML engineer → `/ml`
-- Tester → Tests all modules
+## 🧑‍🚀 Team Responsibilities
 
-Do NOT modify folders you are not assigned to.
+Each member works only in their assigned module:
 
----
+- Frontend Developers → `/frontend`
+- Backend Developers → `/backend`
+- ML Engineer → `/ml`
+- Team Lead → Architecture review & GitHub management
 
-## 🚀 How We Will Work
-- Everyone pulls the latest code
-- Works only in their own folder
-- Pushes updates to GitHub
-- Team lead (Devraj) merges final versions
+Do NOT modify folders outside your responsibility without discussion.
 
 ---
 
-## 🔐 Access
-This is a private development repository.  
-Do not share outside the team.
+## 🔄 Development Workflow
+
+1. Pull latest changes
+2. Work in your assigned folder
+3. Create feature branch
+4. Commit with clear messages
+5. Push branch
+6. Open Pull Request
+7. Team Lead reviews & merges
+
+---
+
+## 🔐 Repository Policy
+
+- This is a private development repository.
+- Do not share outside the team.
+- Do not commit large datasets or temporary files.
+- Keep commits structured and meaningful.
+
+---
+
+## 🎯 Current Phase
+
+We are transitioning from API-based logic to a true ML-driven planetary prediction system with proper model training and evaluation.
+
+---
+
+Maintained by Team CosmoLens AI.

@@ -1,0 +1,83 @@
+export type Theme = "dark" | "nebula" | "light" | "spacePurple"
+
+export const themeStyles = {
+  dark: {
+    bg: "bg-[#050507]",
+    cardBg: "bg-[#101218]/90 border-[#1a1c22]",
+    textPrimary: "text-white/90",
+    textSecondary: "text-white/60",
+    textMuted: "text-white/40",
+    accent: "text-[#7c7cff]",
+    accentBg: "bg-[#7c7cff]/20 text-[#a5a5ff]",
+    buttonBg: "bg-[#0b0c10] hover:bg-[#101218] border-[#1a1c22]",
+    inputBg: "bg-[#0b0c10]/80 border-[#1a1c22]",
+    sidebarBg: "bg-[#0b0c10]/95 backdrop-blur-2xl",
+    sidebarBorder:
+      "border-[#1a1c22] shadow-[inset_0_1px_1px_rgba(255,255,255,0.03),0_0_20px_rgba(124,124,255,0.08)]",
+    scrollbarTrack: "bg-[#0b0c10]/50",
+    scrollbarThumb: "bg-[#7c7cff]/30 hover:bg-[#7c7cff]/50",
+    glowColor: "shadow-[#7c7cff]/15",
+    panelBg: "#0b0c10",
+  },
+  nebula: {
+    bg: "bg-transparent",
+    cardBg: "bg-white/5 border-white/10 backdrop-blur-xl",
+    textPrimary: "text-white",
+    textSecondary: "text-cyan-100/70",
+    textMuted: "text-cyan-100/50",
+    accent: "text-cyan-300",
+    accentBg: "bg-cyan-500/20 text-cyan-200",
+    buttonBg: "bg-white/10 hover:bg-white/20 border-white/20",
+    inputBg: "bg-white/10 border-white/20",
+    sidebarBg: "bg-slate-900/50 backdrop-blur-2xl",
+    sidebarBorder:
+      "border-cyan-400/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_30px_rgba(6,182,212,0.15)]",
+    scrollbarTrack: "bg-white/5",
+    scrollbarThumb: "bg-cyan-400/40 hover:bg-cyan-400/60",
+    glowColor: "shadow-cyan-400/30",
+    panelBg: "transparent",
+  },
+  light: {
+    bg: "bg-slate-100",
+    cardBg: "bg-white border-slate-200",
+    textPrimary: "text-slate-900",
+    textSecondary: "text-slate-600",
+    textMuted: "text-slate-500",
+    accent: "text-cyan-600",
+    accentBg: "bg-cyan-100 text-cyan-700",
+    buttonBg: "bg-slate-100 hover:bg-slate-200 border-slate-300",
+    inputBg: "bg-slate-100 border-slate-300",
+    sidebarBg: "bg-white/80 backdrop-blur-2xl",
+    sidebarBorder:
+      "border-slate-200/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),0_0_20px_rgba(6,182,212,0.08)]",
+    scrollbarTrack: "bg-slate-200/50",
+    scrollbarThumb: "bg-cyan-500/30 hover:bg-cyan-500/50",
+    glowColor: "shadow-cyan-500/10",
+    panelBg: "#f1f5f9",
+  },
+  spacePurple: {
+    bg: "bg-purple-950",
+    cardBg: "bg-violet-900/40 border-violet-500/30 backdrop-blur-xl",
+    textPrimary: "text-violet-50",
+    textSecondary: "text-blue-200/70",
+    textMuted: "text-violet-300/50",
+    accent: "text-blue-300",
+    accentBg: "bg-blue-500/20 text-blue-200",
+    buttonBg: "bg-violet-800/50 hover:bg-violet-700/50 border-violet-500/40",
+    inputBg: "bg-violet-900/40 border-violet-500/30",
+    sidebarBg: "bg-purple-950/50 backdrop-blur-2xl",
+    sidebarBorder:
+      "border-violet-400/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_0_30px_rgba(139,92,246,0.15)]",
+    scrollbarTrack: "bg-violet-900/30",
+    scrollbarThumb: "bg-violet-400/40 hover:bg-violet-400/60",
+    glowColor: "shadow-violet-500/30",
+    panelBg: "#1a0a2e",
+  },
+}
+
+export const themeOptions: { id: Theme; label: string }[] = [
+  { id: "dark", label: "Dark" },
+  { id: "nebula", label: "Nebula" },
+  { id: "light", label: "Light" },
+  { id: "spacePurple", label: "Space Purple" },
+]

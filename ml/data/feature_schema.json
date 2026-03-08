@@ -1,0 +1,76 @@
+{
+  "model_name": "planet_habitability_classifier",
+  "version": "1.0",
+
+  "input_features": [
+    {
+      "name": "planet_mass",
+      "unit": "earth_masses",
+      "type": "float",
+      "range": [0.1, 10]
+    },
+    {
+      "name": "planet_radius",
+      "unit": "earth_radii",
+      "type": "float",
+      "range": [0.5, 3]
+    },
+    {
+      "name": "surface_temperature",
+      "unit": "kelvin",
+      "type": "float",
+      "range": [200, 400]
+    },
+    {
+      "name": "atmospheric_pressure",
+      "unit": "atm",
+      "type": "float",
+      "range": [0.01, 100]
+    },
+    {
+      "name": "greenhouse_factor",
+      "unit": "ratio",
+      "type": "float",
+      "range": [0, 1]
+    },
+    {
+      "name": "semi_major_axis",
+      "unit": "AU",
+      "type": "float",
+      "range": [0.01, 10]
+    },
+    {
+      "name": "orbital_period",
+      "unit": "days",
+      "type": "float",
+      "range": [1, 5000]
+    },
+    {
+      "name": "stellar_flux",
+      "unit": "earth_flux",
+      "type": "float",
+      "range": [0.01, 10]
+    },
+    {
+      "name": "star_temperature",
+      "unit": "kelvin",
+      "type": "float",
+      "range": [2000, 40000]
+    },
+    {
+      "name": "star_luminosity",
+      "unit": "solar_luminosity",
+      "type": "float",
+      "range": [0.0001, 100]
+    }
+  ],
+
+  "target": {
+    "name": "habitability_class",
+    "classes": [
+      "Non-Habitable",
+      "Potentially Habitable",
+      "Habitable"
+    ]
+  }
+}

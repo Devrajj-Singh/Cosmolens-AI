@@ -1,88 +1,52 @@
+"""
+feature_engineering.py
+-----------------------
+CosmoLens AI — Planet Habitability Prediction System
+Step 2: Derive physics-based features.
+
+Location: ml/training/feature_engineering.py
+
+Derived features:
+  greenhouse_factor    = 1 + 0.3 * log10(stellar_flux + 1)
+  surface_temperature  = equilibrium_temperature * greenhouse_factor
+  atmospheric_pressure = planet_mass / planet_radius^2
+"""
+
+import pandas as pd
 import numpy as np
+import os
 
-# Physical constants
-G = 6.67430e-11
-EARTH_MASS = 5.972e24
-EARTH_RADIUS = 6.371e6
-BOLTZMANN = 1.380649e-23
-PROTON_MASS = 1.6726219e-27
+_BASE = os.path.join(os.path.dirname(__file__), "..")
+CLEAN_DATA_PATH      = os.path.join(_BASE, "data", "exoplanet_clean.csv")
+ENGINEERED_DATA_PATH = os.path.join(_BASE, "data", "exoplanet_engineered.csv")
 
 
-def compute_surface_gravity(mass_earth, radius_earth):
-    """
-    Surface gravity relative to Earth.
-    """
-    mass = mass_earth * EARTH_MASS
-    radius = radius_earth * EARTH_RADIUS
-    gravity = G * mass / (radius ** 2)
-    return gravity
+def derive_features(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+
+    # greenhouse_factor: log10 compresses wide flux range into usable scale
+    df["greenhouse_factor"] = 1.0 + 0.3 * np.log10(df["stellar_flux"] + 1)
+
+    # surface_temperature: equilibrium temp adjusted for greenhouse warming
+    df["surface_temperature"] = df["equilibrium_temperature"] * df["greenhouse_factor"]
+
+    # atmospheric_pressure: surface gravity proxy (mass / radius^2), Earth = 1.0
+    safe_radius = df["planet_radius"].clip(lower=0.1)
+    df["atmospheric_pressure"] = df["planet_mass"] / (safe_radius ** 2)
+
+    print(f"[feature_engineering] Derived 3 features for {len(df)} rows")
+    print(f"  greenhouse_factor   : {df['greenhouse_factor'].min():.3f} – {df['greenhouse_factor'].max():.3f}")
+    print(f"  surface_temperature : {df['surface_temperature'].min():.1f}K – {df['surface_temperature'].max():.1f}K")
+    print(f"  atmospheric_pressure: {df['atmospheric_pressure'].min():.4f} – {df['atmospheric_pressure'].max():.1f}")
+    return df
 
 
-def compute_escape_velocity(mass_earth, radius_earth):
-    """
-    Escape velocity in m/s.
-    """
-    mass = mass_earth * EARTH_MASS
-    radius = radius_earth * EARTH_RADIUS
-    velocity = np.sqrt((2 * G * mass) / radius)
-    return velocity
+def save_engineered(df: pd.DataFrame, path: str = ENGINEERED_DATA_PATH) -> None:
+    df.to_csv(path, index=False)
+    print(f"[feature_engineering] Saved: {path}")
 
 
-def compute_equilibrium_temperature(stellar_flux):
-    """
-    Approximate planetary equilibrium temperature.
-    Earth reference = 255K
-    """
-    return 255 * (stellar_flux ** 0.25)
-
-
-def compute_habitable_zone_flag(stellar_flux):
-    """
-    Returns 1 if flux is inside rough habitable zone.
-    """
-    if 0.75 <= stellar_flux <= 1.5:
-        return 1
-    return 0
-
-
-def compute_atmosphere_retention(escape_velocity, temperature):
-    """
-    Estimate atmosphere retention ability.
-    """
-    thermal_velocity = np.sqrt((3 * BOLTZMANN * temperature) / PROTON_MASS)
-    return escape_velocity / thermal_velocity
-
-
-def generate_derived_features(row):
-    """
-    Generate all physics-based derived features.
-    Input: dictionary containing planet parameters.
-    """
-
-    gravity = compute_surface_gravity(
-        row["planet_mass"], row["planet_radius"]
-    )
-
-    escape_velocity = compute_escape_velocity(
-        row["planet_mass"], row["planet_radius"]
-    )
-
-    equilibrium_temp = compute_equilibrium_temperature(
-        row["stellar_flux"]
-    )
-
-    habitable_zone = compute_habitable_zone_flag(
-        row["stellar_flux"]
-    )
-
-    atmosphere_score = compute_atmosphere_retention(
-        escape_velocity, row["surface_temperature"]
-    )
-
-    return {
-        "surface_gravity": gravity,
-        "escape_velocity": escape_velocity,
-        "equilibrium_temperature": equilibrium_temp,
-        "habitable_zone_flag": habitable_zone,
-        "atmosphere_retention_score": atmosphere_score
-    }
+if __name__ == "__main__":
+    df = pd.read_csv(CLEAN_DATA_PATH)
+    df = derive_features(df)
+    save_engineered(df)

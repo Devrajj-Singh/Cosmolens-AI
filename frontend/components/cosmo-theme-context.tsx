@@ -95,10 +95,8 @@ export function CosmoThemeProvider({
   const setActiveModule = (module: ActiveModule) => {
     if (module === activeModule) return
     setIsTransitioning(true)
-    // Small delay so the exit animation can start before we swap
     setTimeout(() => {
       setActiveModuleRaw(module)
-      // Let entrance animation play, then mark done
       setTimeout(() => setIsTransitioning(false), 260)
     }, 20)
   }

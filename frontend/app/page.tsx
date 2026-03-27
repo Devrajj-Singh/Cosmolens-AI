@@ -21,11 +21,11 @@ export default function LoginPage() {
             key={i}
             className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${2 + Math.random() * 3}s`,
-              opacity: Math.random() * 0.7 + 0.3,
+              left: `${((i * 37 + 13) % 100)}%`,
+              top: `${((i * 53 + 7) % 100)}%`,
+              opacity: 0.2 + ((i % 5) * 0.1),
+              animationDelay: `${(i * 0.3) % 3}s`,
+              animationDuration: `${2 + (i % 3)}s`
             }}
           />
         ))}

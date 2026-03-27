@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "node scripts/dev-stack.mjs",
+    "dev:app": "next dev --hostname 127.0.0.1 --port 3101 --webpack",
     "lint": "eslint .",
     "start": "next start"
   },
@@ -44,6 +45,7 @@
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
+    "firebase": "^11.10.0",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
     "next": "^16.1.6",

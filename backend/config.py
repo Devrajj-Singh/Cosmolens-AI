@@ -1,0 +1,9 @@
+import os
+
+
+FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "cosmolens-ai-local")
+FIRESTORE_EMULATOR_HOST = os.getenv("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8080")
+FIREBASE_AUTH_EMULATOR_HOST = os.getenv("FIREBASE_AUTH_EMULATOR_HOST", "127.0.0.1:9099")
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
+AUTH_TOKEN_SECRET = os.getenv("AUTH_TOKEN_SECRET", "cosmolens-local-dev-secret")
+AUTH_TOKEN_EXPIRE_MINUTES = int(os.getenv("AUTH_TOKEN_EXPIRE_MINUTES", "60"))

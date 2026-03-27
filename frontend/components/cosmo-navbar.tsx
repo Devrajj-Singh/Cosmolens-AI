@@ -5,9 +5,6 @@ import { createPortal } from "react-dom"
 import { useRouter } from "next/navigation"
 import {
   Menu,
-  Search,
-  Plus,
-  MessageSquare,
   X,
   Sun,
   Moon,
@@ -22,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useCosmoTheme } from "@/components/cosmo-theme-context"
+import { clearSession } from "@/lib/auth/session"
+import { logoutUser } from "@/lib/firebase/auth"
 import { themeStyles, themeOptions, type Theme } from "@/lib/themes"
 
 const themeIcons: Record<Theme, typeof Sun> = {
@@ -30,14 +29,6 @@ const themeIcons: Record<Theme, typeof Sun> = {
   light: Sun,
   spacePurple: Palette,
 }
-
-const chatHistory = [
-  { id: 1, title: "NGC 1300 Analysis", date: "Today" },
-  { id: 2, title: "Andromeda Galaxy", date: "Yesterday" },
-  { id: 3, title: "Crab Nebula Study", date: "3 days ago" },
-  { id: 4, title: "Mars Surface", date: "1 week ago" },
-  { id: 5, title: "Jupiter Moons", date: "2 weeks ago" },
-]
 
 // ---------------------------------------------------------------------------
 // AI Status badge with per-module state and animated transitions
@@ -132,9 +123,8 @@ function AIStatusBadge({
 
 export function CosmoNavbar() {
   const router = useRouter()
-  const { theme, setTheme, activeModule, setActiveModule, isAuthenticated, explorerAIStatus, planetAIStatus } = useCosmoTheme()
+  const { theme, setTheme, activeModule, setActiveModule, isAuthenticated, setIsAuthenticated, user, setUser, explorerAIStatus, planetAIStatus } = useCosmoTheme()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false)
   const themeDropdownRef = useRef<HTMLDivElement>(null)
   const themeButtonRef = useRef<HTMLButtonElement>(null)
@@ -184,7 +174,11 @@ export function CosmoNavbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [sidebarOpen, themeDropdownOpen])
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logoutUser()
+    clearSession()
+    setUser(null)
+    setIsAuthenticated(false)
     setSidebarOpen(false)
     router.push("/")
   }
@@ -278,89 +272,7 @@ export function CosmoNavbar() {
             </Button>
           </div>
 
-          {/* Middle: Chat History — flex-grow + scrollable */}
-          <div className="flex-1 flex flex-col min-h-0">
-            <h3 className={`shrink-0 text-sm font-medium mb-2 ${styles.textSecondary}`}>Chat History</h3>
-
-            {isAuthenticated ? (
-              <>
-                <Button
-                  className={`shrink-0 w-full mb-3 ${styles.buttonBg} border ${styles.textPrimary} transition-all duration-200 hover:shadow-lg hover:shadow-cyan-500/20 active:scale-[0.98]`}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Chat
-                </Button>
-
-                <div className="shrink-0 relative mb-3">
-                  <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${styles.textMuted}`} />
-                  <Input
-                    placeholder="Search conversations..."
-                    className={`pl-10 ${styles.inputBg} border ${styles.textPrimary} placeholder:${styles.textMuted} transition-all duration-200 focus:shadow-lg focus:shadow-cyan-500/10`}
-                  />
-                </div>
-
-                <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 min-h-0">
-                  {chatHistory.map((chat) => (
-                    <button
-                      key={chat.id}
-                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${styles.buttonBg} border hover:shadow-md hover:shadow-cyan-500/10 active:scale-[0.98]`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <MessageSquare className={`w-4 h-4 mt-0.5 ${styles.accent}`} />
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium truncate ${styles.textPrimary}`}>{chat.title}</p>
-                          <p className={`text-xs ${styles.textMuted}`}>{chat.date}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center px-4">
-                <div
-                  className={`w-full rounded-xl border p-6 text-center animate-in fade-in-0 duration-500 ${styles.cardBg}`}
-                >
-                  <div
-                    className={`w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center ${
-                      theme === "dark"
-                        ? "bg-[#7c7cff]/15"
-                        : theme === "spacePurple"
-                          ? "bg-violet-500/15"
-                          : theme === "light"
-                            ? "bg-cyan-100"
-                            : "bg-cyan-500/15"
-                    }`}
-                  >
-                    <Lock
-                      className={`w-5 h-5 ${
-                        theme === "dark" ? "text-[#a5a5ff]" : theme === "spacePurple" ? "text-violet-300" : "text-cyan-400"
-                      }`}
-                    />
-                  </div>
-                  <h4 className={`text-sm font-semibold mb-1.5 ${styles.textPrimary}`}>Login Required</h4>
-                  <p className={`text-xs leading-relaxed mb-4 ${styles.textMuted}`}>
-                    Chat history is available only for logged-in users.
-                  </p>
-                  <Button
-                    onClick={() => {
-                      setSidebarOpen(false)
-                      router.push("/")
-                    }}
-                    className={`w-full h-10 text-sm font-medium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border-0 ${
-                      theme === "dark"
-                        ? "bg-gradient-to-r from-[#7c7cff] to-blue-600 text-white shadow-lg shadow-[#7c7cff]/25"
-                        : theme === "spacePurple"
-                          ? "bg-gradient-to-r from-violet-500 to-blue-600 text-white shadow-lg shadow-violet-500/25"
-                          : "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25"
-                    }`}
-                  >
-                    Login to Continue
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
+          <div className="flex-1" />
 
           {/* Profile + Logout — compact fixed bottom */}
           <div className={`shrink-0 mt-3 pt-3 border-t ${theme === "light" ? "border-slate-200" : "border-white/10"}`}>
@@ -390,7 +302,7 @@ export function CosmoNavbar() {
                               : "bg-gradient-to-br from-slate-800/60 to-slate-900/60 text-cyan-200 ring-1 ring-cyan-400/30 group-hover:ring-cyan-400/50"
                       }`}
                     >
-                      AE
+                      {(user?.email?.[0] ?? "U").toUpperCase()}
                     </div>
                     <div
                       className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 bg-emerald-400 ${
@@ -399,8 +311,8 @@ export function CosmoNavbar() {
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium leading-tight truncate ${styles.textPrimary}`}>Alex Explorer</p>
-                    <p className={`text-[11px] leading-tight truncate ${styles.textMuted}`}>Explorer Member</p>
+                    <p className={`text-sm font-medium leading-tight truncate ${styles.textPrimary}`}>{user?.email ?? "Authenticated User"}</p>
+                    <p className={`text-[11px] leading-tight truncate ${styles.textMuted}`}>{user?.provider ?? "Firebase Auth"}</p>
                   </div>
                 </div>
 
@@ -474,27 +386,8 @@ export function CosmoNavbar() {
           </div>
         </div>
 
-        {/* Center: Search + Segmented Tab Control */}
-        <div className="flex items-center gap-2">
-          {/* Search bar - fades in/out based on module */}
-          <div
-            className={`hidden md:block max-w-xs mr-4 transition-all duration-250 ease-in-out ${
-              activeModule === "explorer"
-                ? "opacity-100 translate-x-0 pointer-events-auto"
-                : "opacity-0 -translate-x-4 pointer-events-none w-0 mr-0 overflow-hidden"
-            }`}
-          >
-            <div className="relative">
-              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${styles.textMuted}`} />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search celestial objects..."
-                className={`pl-10 w-64 ${styles.inputBg} border ${styles.textPrimary} placeholder:${styles.textMuted} transition-all duration-200 focus:shadow-lg focus:shadow-cyan-500/10`}
-              />
-            </div>
-          </div>
-
+          {/* Center: Segmented Tab Control */}
+          <div className="flex items-center gap-2">
           {/* Segmented Control */}
           <div
             className={`relative flex rounded-xl p-1 border transition-all duration-300 ${

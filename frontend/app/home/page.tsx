@@ -1,9 +1,10 @@
 "use client"
 
+import { subscribeToAuthState } from "@/lib/firebase/auth"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Rocket, Globe, Layers, Cpu, BarChart3, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Suspense } from "react"
+import { Suspense, useEffect, useState } from "react"
 
 const team = [
   { name: "Alex Chen", role: "Project Lead / DevOps", initials: "AC" },
@@ -44,7 +45,13 @@ const howItWorks = [
 function HomePageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const isAuth = searchParams.get("auth") !== "false"
+  const [isAuth, setIsAuth] = useState(searchParams.get("auth") !== "false")
+
+  useEffect(() => {
+    return subscribeToAuthState((user) => {
+      setIsAuth(Boolean(user))
+    })
+  }, [])
 
   const handleLaunchExplorer = () => {
     router.push(isAuth ? "/explorer" : "/explorer?auth=false")

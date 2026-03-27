@@ -59,15 +59,14 @@ export default function ExplorerContent() {
                     className={`absolute -inset-4 rounded-full blur-xl ${theme === "spacePurple" ? "bg-gradient-to-r from-violet-500/20 to-blue-500/20 shadow-violet-500/30" : theme === "dark" ? "bg-gradient-to-r from-[#7c7cff]/20 to-blue-500/20" : `bg-gradient-to-r from-cyan-500/20 to-blue-500/20 ${styles.glowColor}`}`}
                   />
                   <div
-                    className={`relative w-72 h-72 lg:w-80 lg:h-80 rounded-full border-2 ${
-                      theme === "light"
+                    className={`relative w-72 h-72 lg:w-80 lg:h-80 rounded-full border-2 ${theme === "light"
                         ? "border-slate-300 bg-slate-100"
                         : theme === "spacePurple"
                           ? "border-violet-500/30 bg-purple-950/50"
                           : theme === "dark"
                             ? "border-[#7c7cff]/30 bg-[#050507]/50"
                             : "border-cyan-500/30 bg-slate-900/50"
-                    } flex items-center justify-center overflow-hidden`}
+                      } flex items-center justify-center overflow-hidden`}
                   >
                     <div className="absolute inset-8 rounded-full overflow-hidden">
                       <div className="absolute inset-0 animate-spin" style={{ animationDuration: "30s" }}>
@@ -89,9 +88,9 @@ export default function ExplorerContent() {
                               key={i}
                               className={`absolute w-1 h-1 rounded-full ${theme === "spacePurple" ? "bg-violet-300/60" : theme === "dark" ? "bg-[#a5a5ff]/60" : "bg-cyan-300/60"}`}
                               style={{
-                                left: `${(x / 256) * 100}%`,
-                                top: `${(y / 256) * 100}%`,
-                                opacity: 0.3 + ((i * 7) % 10) * 0.07,
+                                left: `${((x / 256) * 100).toFixed(4)}%`,
+                                top: `${((y / 256) * 100).toFixed(4)}%`,
+                                opacity: parseFloat((0.3 + ((i * 7) % 10) * 0.07).toFixed(2)),
                               }}
                             />
                           )
@@ -131,29 +130,26 @@ export default function ExplorerContent() {
                 <div className="absolute inset-0 backdrop-blur-[6px] bg-black/40" />
                 <div className="relative h-full flex items-center justify-center p-6">
                   <div
-                    className={`max-w-sm w-full rounded-xl border p-6 text-center ${styles.cardBg} ${
-                      theme === "dark"
+                    className={`max-w-sm w-full rounded-xl border p-6 text-center ${styles.cardBg} ${theme === "dark"
                         ? "shadow-[0_0_30px_rgba(124,124,255,0.12)]"
                         : theme === "spacePurple"
                           ? "shadow-[0_0_30px_rgba(139,92,246,0.15)]"
                           : "shadow-[0_0_30px_rgba(6,182,212,0.12)]"
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center ${
-                        theme === "dark"
+                      className={`w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center ${theme === "dark"
                           ? "bg-[#7c7cff]/15 ring-1 ring-[#7c7cff]/30"
                           : theme === "spacePurple"
                             ? "bg-violet-500/15 ring-1 ring-violet-400/30"
                             : theme === "light"
                               ? "bg-cyan-100 ring-1 ring-cyan-300/40"
                               : "bg-cyan-500/15 ring-1 ring-cyan-400/30"
-                      }`}
+                        }`}
                     >
                       <Lock
-                        className={`w-6 h-6 ${
-                          theme === "dark" ? "text-[#a5a5ff]" : theme === "spacePurple" ? "text-violet-300" : "text-cyan-400"
-                        }`}
+                        className={`w-6 h-6 ${theme === "dark" ? "text-[#a5a5ff]" : theme === "spacePurple" ? "text-violet-300" : "text-cyan-400"
+                          }`}
                       />
                     </div>
                     <h3 className={`text-lg font-semibold mb-2 ${styles.textPrimary}`}>Login required for interactive visualization</h3>
@@ -162,13 +158,12 @@ export default function ExplorerContent() {
                     </p>
                     <Button
                       onClick={() => router.push("/")}
-                      className={`w-full h-11 text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border-0 ${
-                        theme === "dark"
+                      className={`w-full h-11 text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border-0 ${theme === "dark"
                           ? "bg-gradient-to-r from-[#7c7cff] to-blue-600 text-white shadow-lg shadow-[#7c7cff]/25"
                           : theme === "spacePurple"
                             ? "bg-gradient-to-r from-violet-500 to-blue-600 text-white shadow-lg shadow-violet-500/25"
                             : "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25"
-                      }`}
+                        }`}
                     >
                       Login to Continue
                     </Button>
@@ -198,15 +193,13 @@ export default function ExplorerContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Timeline Card */}
             <div
-              className={`rounded-2xl border ${styles.cardBg} transition-all duration-300 shadow-lg ${
-                theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/5"
-              }`}
+              className={`rounded-2xl border ${styles.cardBg} transition-all duration-300 shadow-lg ${theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/5"
+                }`}
             >
               <button
                 onClick={() => setTimelineOpen(!timelineOpen)}
-                className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors duration-200 rounded-2xl ${
-                  theme === "light" ? "hover:bg-slate-50" : theme === "dark" ? "hover:bg-[#101218]/60" : theme === "spacePurple" ? "hover:bg-violet-800/20" : "hover:bg-white/5"
-                }`}
+                className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors duration-200 rounded-2xl ${theme === "light" ? "hover:bg-slate-50" : theme === "dark" ? "hover:bg-[#101218]/60" : theme === "spacePurple" ? "hover:bg-violet-800/20" : "hover:bg-white/5"
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Clock className={`w-4 h-4 ${styles.accent}`} />
@@ -228,9 +221,8 @@ export default function ExplorerContent() {
                   <div className="relative">
                     {/* Vertical connector line */}
                     <div
-                      className={`absolute left-[29px] top-2 bottom-2 w-px ${
-                        theme === "light" ? "bg-slate-200" : theme === "dark" ? "bg-[#1a1c22]" : theme === "spacePurple" ? "bg-violet-500/15" : "bg-white/10"
-                      }`}
+                      className={`absolute left-[29px] top-2 bottom-2 w-px ${theme === "light" ? "bg-slate-200" : theme === "dark" ? "bg-[#1a1c22]" : theme === "spacePurple" ? "bg-violet-500/15" : "bg-white/10"
+                        }`}
                     />
                     <div className="space-y-4">
                       {timelineData.map((item, index) => (
@@ -249,15 +241,13 @@ export default function ExplorerContent() {
 
             {/* Notes Card */}
             <div
-              className={`rounded-2xl border ${styles.cardBg} transition-all duration-300 shadow-lg ${
-                theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/5"
-              }`}
+              className={`rounded-2xl border ${styles.cardBg} transition-all duration-300 shadow-lg ${theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/5"
+                }`}
             >
               <button
                 onClick={() => setNotesOpen(!notesOpen)}
-                className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors duration-200 rounded-2xl ${
-                  theme === "light" ? "hover:bg-slate-50" : theme === "dark" ? "hover:bg-[#101218]/60" : theme === "spacePurple" ? "hover:bg-violet-800/20" : "hover:bg-white/5"
-                }`}
+                className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors duration-200 rounded-2xl ${theme === "light" ? "hover:bg-slate-50" : theme === "dark" ? "hover:bg-[#101218]/60" : theme === "spacePurple" ? "hover:bg-violet-800/20" : "hover:bg-white/5"
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <StickyNote className={`w-4 h-4 ${styles.accent}`} />
@@ -285,9 +275,8 @@ export default function ExplorerContent() {
                         </div>
                         {index < notesData.length - 1 && (
                           <div
-                            className={`mt-4 border-b ${
-                              theme === "light" ? "border-slate-100" : theme === "dark" ? "border-[#1a1c22]/60" : theme === "spacePurple" ? "border-violet-500/10" : "border-white/5"
-                            }`}
+                            className={`mt-4 border-b ${theme === "light" ? "border-slate-100" : theme === "dark" ? "border-[#1a1c22]/60" : theme === "spacePurple" ? "border-violet-500/10" : "border-white/5"
+                              }`}
                           />
                         )}
                       </div>
@@ -323,13 +312,12 @@ export default function ExplorerContent() {
                   {objectData.properties.map((prop) => (
                     <div
                       key={prop.label}
-                      className={`flex justify-between py-2 border-b ${
-                        theme === "light"
+                      className={`flex justify-between py-2 border-b ${theme === "light"
                           ? "border-slate-200"
                           : theme === "dark"
                             ? "border-[#1a1c22]"
                             : "border-white/10"
-                      }`}
+                        }`}
                     >
                       <span className={`text-sm ${styles.textMuted}`}>{prop.label}</span>
                       <span className={`text-sm font-medium ${styles.textPrimary}`}>{prop.value}</span>

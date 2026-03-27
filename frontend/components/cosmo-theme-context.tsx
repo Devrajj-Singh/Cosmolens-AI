@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
 import type { Theme } from "@/lib/themes"
 
 export type ActiveModule = "explorer" | "planet-ai"
@@ -52,20 +52,50 @@ export function CosmoThemeProvider({
   const [explorerAIStatus, setExplorerAIStatus] = useState<ExplorerAIStatus>(initialAuth ? "active" : "locked")
   const [planetAIStatus, setPlanetAIStatus] = useState<PlanetAIStatus>(initialAuth ? "ready" : "locked")
 
+  // ── Backend health check ─────────────────────────────────────────────────
+  const checkBackend = useCallback(async () => {
+    if (!initialAuth) return
+    try {
+      const res = await fetch("http://localhost:5000/api/planet/health", {
+        signal: AbortSignal.timeout(3000),
+      })
+      setPlanetAIStatus(res.ok ? "ready" : "offline")
+    } catch {
+      setPlanetAIStatus("offline")
+    }
+  }, [initialAuth])
+
+  useEffect(() => {
+    checkBackend()
+    const interval = setInterval(checkBackend, 30_000)
+    return () => clearInterval(interval)
+  }, [checkBackend])
+  // ────────────────────────────────────────────────────────────────────────
+
   const setActiveModule = (module: ActiveModule) => {
     if (module === activeModule) return
     setIsTransitioning(true)
-    // Small delay so the exit animation can start before we swap
     setTimeout(() => {
       setActiveModuleRaw(module)
-      // Let entrance animation play, then mark done
       setTimeout(() => setIsTransitioning(false), 260)
     }, 20)
   }
 
   return (
     <CosmoThemeContext.Provider
-      value={{ theme, setTheme, activeModule, setActiveModule, isTransitioning, isAuthenticated, setIsAuthenticated, explorerAIStatus, setExplorerAIStatus, planetAIStatus, setPlanetAIStatus }}
+      value={{
+        theme,
+        setTheme,
+        activeModule,
+        setActiveModule,
+        isTransitioning,
+        isAuthenticated,
+        setIsAuthenticated,
+        explorerAIStatus,
+        setExplorerAIStatus,
+        planetAIStatus,
+        setPlanetAIStatus,
+      }}
     >
       {children}
     </CosmoThemeContext.Provider>

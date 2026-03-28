@@ -5,7 +5,8 @@
   "scripts": {
     "build": "next build",
     "dev": "node scripts/dev-stack.mjs",
-    "dev:app": "next dev --hostname 127.0.0.1 --port 3101 --webpack",
+    "dev:stack": "node scripts/dev-stack.mjs",
+    "dev:app": "next dev --hostname 127.0.0.1 --webpack",
     "lint": "eslint .",
     "start": "next start"
   },

@@ -35,11 +35,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const shouldEnableAnalytics = process.env.NODE_ENV === "production"
+
   return (
     <html lang="en" className="dark">
       <body className={`font-sans antialiased`}>
         {children}
-        <Analytics />
+        {shouldEnableAnalytics ? <Analytics /> : null}
       </body>
     </html>
   )

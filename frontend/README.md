@@ -43,6 +43,21 @@ All UI must be:
 
 ## 🔄 How to Work
 1. Pull latest changes
-2. Work only inside `/frontend`
-3. Push your updates
-4. Inform team lead
+2. Install frontend dependencies with `npm install` inside `/frontend`
+3. Start the local stack with `npm run dev`
+4. `npm run dev` starts frontend, backend, and Firebase emulators together and stops them together
+5. Use `npm run dev:app` only when you need the frontend by itself
+6. Work only inside `/frontend`
+7. Push your updates
+8. Inform team lead
+
+---
+
+## 💻 Local Setup
+- `npm run dev` works on Linux, macOS, and Windows
+- Frontend setup for all platforms:
+  `cd frontend && npm install`
+- Backend setup on Linux or macOS:
+  `python3 -m venv .venv && . .venv/bin/activate && pip install -r backend/requirements.txt`
+- Backend setup on Windows PowerShell:
+  `py -m venv .venv; .\.venv\Scripts\Activate.ps1; pip install -r backend/requirements.txt`

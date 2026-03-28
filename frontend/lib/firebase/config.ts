@@ -8,7 +8,7 @@ export const firebaseWebConfig = {
 }
 
 export const firebaseEmulatorConfig = {
-  useEmulators: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR !== "false",
+  useEmulators: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true",
   authHost: process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST ?? "127.0.0.1",
   authPort: Number(process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_PORT ?? 9099),
   firestoreHost: process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST ?? "127.0.0.1",

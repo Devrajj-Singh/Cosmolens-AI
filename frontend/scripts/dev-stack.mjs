@@ -10,6 +10,13 @@ const __dirname = path.dirname(__filename)
 const frontendDir = path.resolve(__dirname, "..")
 const repoRoot = path.resolve(frontendDir, "..")
 const isWindows = process.platform === "win32"
+const bundledNodeVersion = "v22.22.2"
+const bundledNodeExecutable = isWindows
+  ? path.join(repoRoot, ".tools", `node-${bundledNodeVersion}-win-x64`, "node.exe")
+  : null
+const bundledJavaHome = isWindows
+  ? path.join(repoRoot, ".tools", "jdk-21.0.10+7-jre")
+  : null
 const pythonExecutable = isWindows
   ? path.join(repoRoot, ".venv", "Scripts", "python.exe")
   : path.join(repoRoot, ".venv", "bin", "python")
@@ -119,17 +126,47 @@ function requireFile(filepath, description) {
   }
 }
 
-function resolveCommand(command) {
-  if (!isWindows) return command
-  return `${command}.cmd`
+function getNodeExecutable() {
+  if (bundledNodeExecutable && fs.existsSync(bundledNodeExecutable)) {
+    return bundledNodeExecutable
+  }
+
+  return process.execPath
+}
+
+function getFirebaseEnv() {
+  if (!bundledJavaHome) {
+    return {}
+  }
+
+  const javaExecutable = path.join(bundledJavaHome, "bin", isWindows ? "java.exe" : "java")
+  if (!fs.existsSync(javaExecutable)) {
+    return {}
+  }
+
+  const currentPath = process.env.PATH ?? ""
+  const javaBin = path.join(bundledJavaHome, "bin")
+
+  return {
+    JAVA_HOME: bundledJavaHome,
+    PATH: currentPath ? `${javaBin}${path.delimiter}${currentPath}` : javaBin,
+  }
 }
 
 function startProcess(name, command, args, cwd, extraEnv = {}) {
-  const child = spawn(command, args, {
+  const spawnCommand = isWindows ? "cmd.exe" : command
+  const spawnArgs = isWindows ? ["/d", "/s", "/c", command, ...args] : args
+  const child = spawn(spawnCommand, spawnArgs, {
     cwd,
     env: { ...baseEnv, ...extraEnv },
     stdio: "inherit",
     detached: !isWindows,
+  })
+
+  child.on("error", (error) => {
+    if (shuttingDown) return
+    log(`${name} failed to start: ${error.message}`)
+    shutdown(1)
   })
 
   child.on("exit", (code, signal) => {
@@ -213,9 +250,10 @@ async function main() {
   log("Starting Firebase emulators...")
   startProcess(
     "firebase",
-    resolveCommand("npx"),
+    "npx",
     ["firebase-tools@13.35.1", "emulators:start", "--only", "firestore,auth", "--project", "cosmolens-ai-local"],
     repoRoot,
+    getFirebaseEnv(),
   )
 
   log("Starting backend...")
@@ -233,8 +271,16 @@ async function main() {
   log("Starting frontend...")
   startProcess(
     "frontend",
-    resolveCommand("npx"),
-    ["next", "dev", "--hostname", "127.0.0.1", "--port", String(frontendPort), "--webpack"],
+    getNodeExecutable(),
+    [
+      path.join(frontendDir, "node_modules", "next", "dist", "bin", "next"),
+      "dev",
+      "--hostname",
+      "127.0.0.1",
+      "--port",
+      String(frontendPort),
+      "--webpack",
+    ],
     frontendDir,
     {
       FRONTEND_ORIGIN: frontendOrigin,

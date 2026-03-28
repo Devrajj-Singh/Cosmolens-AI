@@ -6,7 +6,7 @@
     "build": "next build",
     "dev": "node scripts/dev-stack.mjs",
     "dev:stack": "node scripts/dev-stack.mjs",
-    "dev:app": "next dev --hostname 127.0.0.1 --webpack",
+    "dev:app": "node scripts/dev-app.mjs",
     "lint": "eslint .",
     "start": "next start"
   },

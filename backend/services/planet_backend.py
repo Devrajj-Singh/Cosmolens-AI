@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import numpy as np
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -137,17 +138,27 @@ def _heuristic_prediction(values: dict[str, float]) -> dict[str, Any]:
 
 
 def _to_model_features(values: dict[str, float]) -> dict[str, float]:
+    stellar_flux = values["stellar_flux"]
+    equilibrium_temp = values["temperature"]
+    planet_mass = values["mass"]
+    planet_radius = max(values["radius"], 0.1)
+
+    # Derive the 3 physics features (same logic as ml/training/feature_engineering.py)
+    greenhouse_factor = 1.0 + 0.3 * np.log10(stellar_flux + 1)
+    surface_temperature = equilibrium_temp * greenhouse_factor
+    atmospheric_pressure = planet_mass / (planet_radius ** 2)
+
     return {
-        "planet_mass": values["mass"],
+        "planet_mass": planet_mass,
         "planet_radius": values["radius"],
         "orbital_period": values["orbital_period"],
         "semi_major_axis": values["semi_major_axis"],
-        "stellar_flux": values["stellar_flux"],
-        "equilibrium_temperature": values["temperature"],
+        "stellar_flux": stellar_flux,
+        "equilibrium_temperature": equilibrium_temp,
         "star_temperature": values["star_temp"],
-        "greenhouse_factor": values["greenhouse"],
-        "surface_temperature": values["temperature"],
-        "atmospheric_pressure": values["pressure"],
+        "greenhouse_factor": greenhouse_factor,
+        "surface_temperature": surface_temperature,
+        "atmospheric_pressure": atmospheric_pressure,
     }
 
 

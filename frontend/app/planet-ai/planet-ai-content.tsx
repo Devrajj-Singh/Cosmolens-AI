@@ -8,6 +8,8 @@ import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
 import { Sparkles, Lock, ChevronDown } from "lucide-react"
 
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://127.0.0.1:18010"
+
 // ---------------------------------------------------------------------------
 // Backend health check hook
 // ---------------------------------------------------------------------------
@@ -19,7 +21,7 @@ function useBackendStatus() {
 
   const check = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/planet/health", {
+      const res = await fetch(`${backendUrl}/health`, {
         signal: AbortSignal.timeout(3000),
       })
       setStatus(res.ok ? "online" : "offline")
@@ -82,72 +84,42 @@ interface PredictionResult {
   confidence: number
 }
 
-const MODEL_FEATURE_IMPORTANCE: Record<string, number> = {
-  planet_radius: 0.2774,
-  planet_mass: 0.1609,
-  stellar_flux: 0.1579,
-  greenhouse_factor: 0.1393,
-  surface_temperature: 0.1121,
-  equilibrium_temperature: 0.0736,
-  atmospheric_pressure: 0.0474,
-  star_temperature: 0.0144,
-  orbital_period: 0.0118,
-  semi_major_axis: 0.0052,
-}
-
-const FEATURE_LABELS: Record<string, string> = {
-  planet_radius: "Planet Radius",
-  planet_mass: "Planet Mass",
-  stellar_flux: "Stellar Flux",
-  greenhouse_factor: "Greenhouse Factor",
-  surface_temperature: "Surface Temp",
-  equilibrium_temperature: "Equilibrium Temp",
-  atmospheric_pressure: "Atmo. Pressure",
-  star_temperature: "Star Temperature",
-  orbital_period: "Orbital Period",
-  semi_major_axis: "Semi-Major Axis",
-}
-
-function mapClass(apiClass: string): PredictionClass {
-  if (apiClass === "Habitable") return "habitable"
-  if (apiClass === "Potentially Habitable") return "potentially-habitable"
-  return "non-habitable"
-}
-
 async function fetchPrediction(values: Record<string, number>): Promise<PredictionResult> {
-  const response = await fetch("http://localhost:5000/api/planet/predict", {
+  const response = await fetch(`${backendUrl}/api/planet/analyze`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(values),
+    body: JSON.stringify({
+      mass: values.planet_mass,
+      radius: values.planet_radius,
+      temperature: values.equilibrium_temperature,
+      pressure: 1,
+      greenhouse: 0.3,
+      semi_major_axis: values.semi_major_axis,
+      orbital_period: values.orbital_period,
+      stellar_flux: values.stellar_flux,
+      star_temp: values.star_temperature,
+      star_luminosity: 1,
+    }),
   })
 
   if (!response.ok) {
-    const err = await response.json()
-    throw new Error(err.error || "Prediction failed")
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || "Prediction failed")
   }
 
   const data = await response.json()
-  const result = data.result
-  const probabilities = result.all_probabilities
-  const classification = mapClass(result.predicted_class)
-
-  const topFeatures = Object.entries(MODEL_FEATURE_IMPORTANCE)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([key, importance]) => ({
-      label: FEATURE_LABELS[key] || key,
-      importance: Math.round(importance * 100),
-    }))
+  const result = data.prediction
+  const probabilities = result.probabilities
 
   return {
-    classification,
+    classification: result.classification,
     probabilities: {
-      habitable: Math.round(probabilities["Habitable"] * 100 * 10) / 10,
-      potential: Math.round(probabilities["Potentially Habitable"] * 100 * 10) / 10,
-      nonHabitable: Math.round(probabilities["Non-Habitable"] * 100 * 10) / 10,
+      habitable: probabilities.habitable,
+      potential: probabilities.potential,
+      nonHabitable: probabilities.non_habitable,
     },
-    topFeatures,
-    confidence: result.confidence,
+    topFeatures: result.top_features,
+    confidence: result.confidence ?? result.score ?? 0,
   }
 }
 
@@ -439,7 +411,7 @@ export default function PlanetAIContent() {
           {apiError && (
             <div className={`mt-4 p-3 rounded-lg border text-sm ${theme === "light" ? "bg-red-50 border-red-200 text-red-600" : "bg-red-500/10 border-red-500/20 text-red-400"
               }`}>
-              {apiError}. Make sure the backend is running on port 5000.
+              {apiError}. Make sure the backend is running.
             </div>
           )}
 

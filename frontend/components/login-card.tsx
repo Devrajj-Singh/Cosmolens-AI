@@ -1,14 +1,44 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import { Mail, Chrome, User } from "lucide-react"
+import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Loader2, Mail, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { saveSession } from "@/lib/auth/session"
+import { loginWithEmail, signupWithEmail } from "@/lib/firebase/auth"
+import { syncBackendSession } from "@/lib/api/auth"
 
 export function LoginCard() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const [mode, setMode] = useState<"login" | "signup">("login")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleLogin = () => {
-    router.push("/home?auth=true")
+  const handleEmailAuth = async () => {
+    setIsSubmitting(true)
+    setError(null)
+
+    try {
+      const user =
+        mode === "login"
+          ? await loginWithEmail(email, password)
+          : await signupWithEmail(email, password)
+
+      const idToken = await user.getIdToken()
+      const session = await syncBackendSession(idToken)
+      saveSession(session)
+      router.push(searchParams.get("redirect") || "/home")
+    } catch (authError) {
+      const message = authError instanceof Error ? authError.message : "Authentication failed."
+      setError(message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleGuestLogin = () => {
@@ -46,22 +76,50 @@ export function LoginCard() {
           </div>
 
           <div className="space-y-3">
-            <Button
-              onClick={handleLogin}
-              className="w-full h-12 bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/25 hover:border-cyan-400/40 focus:ring-2 focus:ring-cyan-400/30 focus:ring-offset-0 active:scale-[0.98]"
-              variant="ghost"
-            >
-              <Mail className="w-5 h-5 mr-3 text-cyan-300" />
-              Continue with Email
-            </Button>
+            <div className="space-y-2 text-left">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-white/70">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  className="h-11 border-white/15 bg-white/10 text-white placeholder:text-white/35"
+                  placeholder="astronaut@cosmolens.ai"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-white/70">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="h-11 border-white/15 bg-white/10 text-white placeholder:text-white/35"
+                  placeholder="Minimum 6 characters"
+                />
+              </div>
+              {error ? <p className="text-sm text-red-300">{error}</p> : null}
+            </div>
 
             <Button
-              onClick={handleLogin}
+              onClick={handleEmailAuth}
+              disabled={isSubmitting || email.trim() === "" || password.trim().length < 6}
               className="w-full h-12 bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/25 hover:border-cyan-400/40 focus:ring-2 focus:ring-cyan-400/30 focus:ring-offset-0 active:scale-[0.98]"
               variant="ghost"
             >
-              <Chrome className="w-5 h-5 mr-3 text-cyan-300" />
-              Continue with Google
+              {isSubmitting ? (
+                <Loader2 className="w-5 h-5 mr-3 text-cyan-300 animate-spin" />
+              ) : (
+                <Mail className="w-5 h-5 mr-3 text-cyan-300" />
+              )}
+              {mode === "login" ? "Login with Email" : "Create Account"}
             </Button>
 
             <Button
@@ -77,12 +135,15 @@ export function LoginCard() {
           {/* Sign up link */}
           <div className="mt-6 text-center">
             <p className="text-white/50 text-sm">
-              {"Don't have an account? "}
+              {mode === "login" ? "Don't have an account? " : "Already have an account? "}
               <button
-                onClick={handleLogin}
+                onClick={() => {
+                  setMode((current) => (current === "login" ? "signup" : "login"))
+                  setError(null)
+                }}
                 className="text-cyan-400 hover:text-cyan-300 transition-all duration-200 underline underline-offset-2 hover:underline-offset-4"
               >
-                Sign up
+                {mode === "login" ? "Sign up" : "Login"}
               </button>
             </p>
           </div>

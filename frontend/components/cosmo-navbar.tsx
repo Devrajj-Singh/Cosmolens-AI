@@ -14,8 +14,9 @@ import {
   Home,
   LogOut,
   User,
-  Lock,
   Search,
+  Telescope,
+  SlidersHorizontal,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -149,6 +150,23 @@ export function CosmoNavbar() {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 })
 
   const styles = themeStyles[theme]
+  const guidanceSections = [
+    {
+      key: "explorer",
+      title: "How to use Explorer AI",
+      description: "Search a space object, then inspect the AI summary, live properties, timeline, and notes panel.",
+      icon: Telescope,
+      steps: ["Type an object name in search", "Press Search to load live data", "Open Timeline or Notes for extra context"],
+    },
+    {
+      key: "planet-ai",
+      title: "How to use Planet AI",
+      description: "Tune the planetary sliders and run the habitability model to see classification, confidence, and key drivers.",
+      icon: SlidersHorizontal,
+      steps: ["Adjust planet, orbit, and star values", "Click Analyze Habitability", "Review the prediction and feature scores"],
+    },
+  ] as const
+  const activeGuidance = guidanceSections.find((section) => section.key === activeModule) ?? guidanceSections[0]
 
   useEffect(() => {
     setMounted(true)
@@ -294,7 +312,55 @@ export function CosmoNavbar() {
             </Button>
           </div>
 
-          <div className="flex-1" />
+          <div className="flex-1 flex items-center">
+            <div
+              className={`rounded-2xl border p-4 transition-all duration-200 ${styles.cardBg} shadow-lg ${
+                theme === "light"
+                  ? "border-cyan-300/70"
+                  : theme === "dark"
+                    ? "border-[#7c7cff]/40 shadow-[#7c7cff]/10"
+                    : theme === "spacePurple"
+                      ? "border-violet-400/40 shadow-violet-500/10"
+                      : "border-cyan-400/30 shadow-cyan-500/10"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                    theme === "light"
+                      ? "bg-cyan-100 text-cyan-700"
+                      : theme === "dark"
+                        ? "bg-[#7c7cff]/15 text-[#a5a5ff]"
+                        : theme === "spacePurple"
+                          ? "bg-violet-500/15 text-violet-300"
+                          : "bg-cyan-500/15 text-cyan-300"
+                  }`}
+                >
+                  <activeGuidance.icon className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className={`text-sm font-semibold ${styles.textPrimary}`}>{activeGuidance.title}</h3>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${styles.accentBg}`}>
+                      Active
+                    </span>
+                  </div>
+                  <p className={`mt-1 text-xs leading-relaxed ${styles.textMuted}`}>{activeGuidance.description}</p>
+                </div>
+              </div>
+
+              <div className={`mt-4 space-y-2 border-t pt-3 ${theme === "light" ? "border-slate-200" : "border-white/10"}`}>
+                {activeGuidance.steps.map((step, index) => (
+                  <div key={step} className="flex items-start gap-2.5">
+                    <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${styles.accentBg}`}>
+                      {index + 1}
+                    </span>
+                    <p className={`text-xs leading-relaxed ${styles.textSecondary}`}>{step}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
           {/* Profile + Logout — compact fixed bottom */}
           <div className={`shrink-0 mt-3 pt-3 border-t ${theme === "light" ? "border-slate-200" : "border-white/10"}`}>

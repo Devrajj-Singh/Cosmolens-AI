@@ -24,6 +24,12 @@ interface CosmoThemeContextType {
   setUser: (user: SessionUser | null) => void
   explorerAIStatus: ExplorerAIStatus
   setExplorerAIStatus: (status: ExplorerAIStatus) => void
+  explorerSearchTerm: string
+  setExplorerSearchTerm: (value: string) => void
+  explorerSearchHasError: boolean
+  setExplorerSearchHasError: (value: boolean) => void
+  explorerSearchVersion: number
+  submitExplorerSearch: () => void
   planetAIStatus: PlanetAIStatus
   setPlanetAIStatus: (status: PlanetAIStatus) => void
 }
@@ -41,6 +47,12 @@ const CosmoThemeContext = createContext<CosmoThemeContextType>({
   setUser: () => {},
   explorerAIStatus: "active",
   setExplorerAIStatus: () => {},
+  explorerSearchTerm: "",
+  setExplorerSearchTerm: () => {},
+  explorerSearchHasError: false,
+  setExplorerSearchHasError: () => {},
+  explorerSearchVersion: 0,
+  submitExplorerSearch: () => {},
   planetAIStatus: "ready",
   setPlanetAIStatus: () => {},
 })
@@ -61,7 +73,14 @@ export function CosmoThemeProvider({
   const [isAuthenticated, setIsAuthenticated] = useState(initialAuth)
   const [user, setUser] = useState<SessionUser | null>(null)
   const [explorerAIStatus, setExplorerAIStatus] = useState<ExplorerAIStatus>(initialAuth ? "active" : "locked")
+  const [explorerSearchTerm, setExplorerSearchTerm] = useState("")
+  const [explorerSearchHasError, setExplorerSearchHasError] = useState(false)
+  const [explorerSearchVersion, setExplorerSearchVersion] = useState(0)
   const [planetAIStatus, setPlanetAIStatus] = useState<PlanetAIStatus>(initialAuth ? "ready" : "locked")
+
+  const submitExplorerSearch = () => {
+    setExplorerSearchVersion((value) => value + 1)
+  }
 
   useEffect(() => {
     setUser(getStoredUser())
@@ -103,7 +122,7 @@ export function CosmoThemeProvider({
 
   return (
     <CosmoThemeContext.Provider
-      value={{ theme, setTheme, activeModule, setActiveModule, isTransitioning, authReady, isAuthenticated, setIsAuthenticated, user, setUser, explorerAIStatus, setExplorerAIStatus, planetAIStatus, setPlanetAIStatus }}
+      value={{ theme, setTheme, activeModule, setActiveModule, isTransitioning, authReady, isAuthenticated, setIsAuthenticated, user, setUser, explorerAIStatus, setExplorerAIStatus, explorerSearchTerm, setExplorerSearchTerm, explorerSearchHasError, setExplorerSearchHasError, explorerSearchVersion, submitExplorerSearch, planetAIStatus, setPlanetAIStatus }}
     >
       {children}
     </CosmoThemeContext.Provider>

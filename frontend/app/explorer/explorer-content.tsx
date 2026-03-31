@@ -1,10 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { RotateCcw, ZoomIn, Move, RefreshCw, Clock, StickyNote, ChevronDown, Lock } from "lucide-react"
+import {
+  RotateCcw,
+  ZoomIn,
+  Move,
+  RefreshCw,
+  Clock,
+  StickyNote,
+  ChevronDown,
+  Lock,
+  Search,
+  Telescope,
+  LoaderCircle,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useCosmoTheme } from "@/components/cosmo-theme-context"
+import { fetchLiveExplorerObject, type ExplorerObject } from "@/lib/api/explorer"
 import { themeStyles } from "@/lib/themes"
 
 const timelineData = [
@@ -37,18 +51,148 @@ const objectData = {
   ],
 }
 
+const fallbackObject: ExplorerObject = {
+  name: objectData.name,
+  type: objectData.type,
+  analysis: objectData.analysis,
+  properties: objectData.properties,
+  timeline: timelineData,
+  notes: notesData,
+  features: [],
+  distance: objectData.properties.find((prop) => prop.label === "Distance")?.value ?? null,
+  discovery: objectData.properties.find((prop) => prop.label === "Discovered")?.value ?? null,
+  image_url: null,
+  source: null,
+  nasa_id: null,
+}
+
+function StateOverlay({
+  theme,
+  styles,
+  icon: Icon,
+  title,
+  subtitle,
+  spinning = false,
+}: {
+  theme: string
+  styles: (typeof themeStyles)[keyof typeof themeStyles]
+  icon: typeof Search
+  title: string
+  subtitle: string
+  spinning?: boolean
+}) {
+  return (
+    <div className="absolute inset-0 z-10 rounded-2xl overflow-hidden animate-in fade-in-0 duration-500">
+      <div className="absolute inset-0 backdrop-blur-[6px] bg-black/40" />
+      <div className="relative h-full flex items-center justify-center p-6">
+        <div
+          className={`max-w-sm w-full rounded-xl border p-6 text-center ${styles.cardBg} ${theme === "dark"
+              ? "shadow-[0_0_30px_rgba(124,124,255,0.12)]"
+              : theme === "spacePurple"
+                ? "shadow-[0_0_30px_rgba(139,92,246,0.15)]"
+                : "shadow-[0_0_30px_rgba(6,182,212,0.12)]"
+            }`}
+        >
+          <div
+            className={`w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center ${theme === "dark"
+                ? "bg-[#7c7cff]/15 ring-1 ring-[#7c7cff]/30"
+                : theme === "spacePurple"
+                  ? "bg-violet-500/15 ring-1 ring-violet-400/30"
+                  : theme === "light"
+                    ? "bg-cyan-100 ring-1 ring-cyan-300/40"
+                    : "bg-cyan-500/15 ring-1 ring-cyan-400/30"
+              }`}
+          >
+            <Icon
+              className={`w-6 h-6 ${spinning ? "animate-spin" : ""} ${theme === "dark" ? "text-[#a5a5ff]" : theme === "spacePurple" ? "text-violet-300" : "text-cyan-400"}`}
+            />
+          </div>
+          <h3 className={`text-lg font-semibold mb-2 ${styles.textPrimary}`}>{title}</h3>
+          <p className={`text-sm leading-relaxed ${styles.textMuted}`}>{subtitle}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ExplorerContent() {
-  const { theme, isAuthenticated } = useCosmoTheme()
+  const {
+    theme,
+    isAuthenticated,
+    explorerSearchTerm,
+    explorerSearchVersion,
+    setExplorerSearchHasError,
+  } = useCosmoTheme()
   const router = useRouter()
   const [timelineOpen, setTimelineOpen] = useState(false)
   const [notesOpen, setNotesOpen] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const [isSearching, setIsSearching] = useState(false)
+  const [searchResult, setSearchResult] = useState<ExplorerObject>(fallbackObject)
+  const [objectFound, setObjectFound] = useState(true)
+  const [hasSearched, setHasSearched] = useState(false)
+  const [lastSearchedQuery, setLastSearchedQuery] = useState("")
   const styles = themeStyles[theme]
+
+  const activeName = searchResult.name
+  const activeType = searchResult.type
+  const activeAnalysis = searchResult.analysis
+  const activeProperties = searchResult.properties.length > 0 ? searchResult.properties : objectData.properties
+  const activeTimeline = searchResult.timeline.length > 0 ? searchResult.timeline : timelineData
+  const activeNotes = searchResult.notes.length > 0 ? searchResult.notes : notesData
+  const activeSourceLabel = searchResult.source?.label ?? "Curated Astronomical Dataset"
+  const showNotFoundState = hasSearched && !isSearching && !objectFound
+  const showDataPanels = !isSearching && objectFound
+  const modelStateClass = isSearching ? "blur-[2px] opacity-60" : showNotFoundState ? "blur-sm opacity-40" : ""
+
+  const runSearch = async (rawQuery: string) => {
+    const trimmedQuery = rawQuery.trim()
+    if (!trimmedQuery) {
+      return
+    }
+
+    setHasSearched(true)
+    setLastSearchedQuery(trimmedQuery)
+    setIsSearching(true)
+    setObjectFound(true)
+    setSearchError(null)
+    setTimelineOpen(false)
+    setNotesOpen(false)
+
+    try {
+      const result = await fetchLiveExplorerObject(trimmedQuery)
+      if (result.found && result.object) {
+        setSearchResult(result.object)
+        setObjectFound(true)
+        setSearchError(null)
+        setExplorerSearchHasError(false)
+        return
+      }
+
+      setObjectFound(false)
+      setSearchError(
+        result.message ??
+          `No results found for '${trimmedQuery}'. Try searching for a known space object like 'Andromeda Galaxy', 'Black Hole', or 'Mars'.`,
+      )
+      setExplorerSearchHasError(true)
+    } catch (error) {
+      setObjectFound(false)
+      setSearchError(error instanceof Error ? error.message : "Search failed.")
+      setExplorerSearchHasError(true)
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  useEffect(() => {
+    if (explorerSearchVersion === 0) return
+    void runSearch(explorerSearchTerm)
+  }, [explorerSearchTerm, explorerSearchVersion])
 
   return (
     <div className="p-4 lg:p-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 flex flex-col gap-4">
-          {/* Galaxy Visualization Card */}
           <div
             className={`relative flex-1 rounded-2xl border p-6 ${styles.cardBg} transition-all duration-300 shadow-xl ${theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/10"}`}
           >
@@ -66,7 +210,7 @@ export default function ExplorerContent() {
                           : theme === "dark"
                             ? "border-[#7c7cff]/30 bg-[#050507]/50"
                             : "border-cyan-500/30 bg-slate-900/50"
-                      } flex items-center justify-center overflow-hidden`}
+                      } flex items-center justify-center overflow-hidden transition-all duration-300 ${modelStateClass}`}
                   >
                     <div className="absolute inset-8 rounded-full overflow-hidden">
                       <div className="absolute inset-0 animate-spin" style={{ animationDuration: "30s" }}>
@@ -99,6 +243,7 @@ export default function ExplorerContent() {
                     </div>
                     <span className={`absolute top-4 left-4 text-xs ${styles.textMuted}`}>WebGL</span>
                     <span className={`absolute top-4 right-4 text-xs ${styles.textMuted}`}>3D</span>
+                    <span className={`absolute bottom-4 left-4 text-xs ${styles.textMuted}`}>{activeName}</span>
                   </div>
                 </div>
               </div>
@@ -122,9 +267,9 @@ export default function ExplorerContent() {
               </div>
 
               <p className={`text-center text-xs mt-4 ${styles.textMuted}`}>AI Model Ready - WebGL Interactive</p>
+              {isSearching && <p className={`text-center text-xs mt-2 ${styles.textMuted}`}>Searching explorer data...</p>}
             </div>
 
-            {/* Guest Mode: 3D model locked overlay */}
             {!isAuthenticated && (
               <div className="absolute inset-0 z-10 rounded-2xl overflow-hidden animate-in fade-in-0 duration-500">
                 <div className="absolute inset-0 backdrop-blur-[6px] bg-black/40" />
@@ -148,8 +293,7 @@ export default function ExplorerContent() {
                         }`}
                     >
                       <Lock
-                        className={`w-6 h-6 ${theme === "dark" ? "text-[#a5a5ff]" : theme === "spacePurple" ? "text-violet-300" : "text-cyan-400"
-                          }`}
+                        className={`w-6 h-6 ${theme === "dark" ? "text-[#a5a5ff]" : theme === "spacePurple" ? "text-violet-300" : "text-cyan-400"}`}
                       />
                     </div>
                     <h3 className={`text-lg font-semibold mb-2 ${styles.textPrimary}`}>Login required for interactive visualization</h3>
@@ -171,14 +315,34 @@ export default function ExplorerContent() {
                 </div>
               </div>
             )}
+
+            {isAuthenticated && isSearching && (
+              <StateOverlay
+                theme={theme}
+                styles={styles}
+                icon={LoaderCircle}
+                title="Searching Object"
+                subtitle="Pulling live Wikipedia data and preparing the explorer view."
+                spinning
+              />
+            )}
+
+            {isAuthenticated && showNotFoundState && (
+              <StateOverlay
+                theme={theme}
+                styles={styles}
+                icon={Search}
+                title="Object Not Found"
+                subtitle="Try searching for Andromeda Galaxy, Black Hole, Mars, Orion Nebula..."
+              />
+            )}
           </div>
 
-          {/* Subtle Data Info Strip */}
           <div
             className={`flex flex-wrap items-center gap-x-6 gap-y-1 px-4 py-2.5 rounded-lg border ${styles.cardBg} transition-all duration-300`}
           >
             {[
-              { label: "Data Source", value: "Curated Astronomical Dataset" },
+              { label: "Data Source", value: activeSourceLabel },
               { label: "Visualization Engine", value: "WebGL Renderer" },
               { label: "Last Updated", value: new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) },
             ].map((item) => (
@@ -189,48 +353,91 @@ export default function ExplorerContent() {
             ))}
           </div>
 
-          {/* Timeline & Notes - Two Collapsible Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Timeline Card */}
-            <div
-              className={`rounded-2xl border ${styles.cardBg} transition-all duration-300 shadow-lg ${theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/5"
-                }`}
-            >
-              <button
-                onClick={() => setTimelineOpen(!timelineOpen)}
-                className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors duration-200 rounded-2xl ${theme === "light" ? "hover:bg-slate-50" : theme === "dark" ? "hover:bg-[#101218]/60" : theme === "spacePurple" ? "hover:bg-violet-800/20" : "hover:bg-white/5"
-                  }`}
+          {showDataPanels && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
+              <div
+                className={`rounded-2xl border ${styles.cardBg} transition-all duration-300 shadow-lg ${theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/5"}`}
               >
-                <div className="flex items-center gap-2.5">
-                  <Clock className={`w-4 h-4 ${styles.accent}`} />
-                  <span className={`text-sm font-semibold ${styles.textSecondary}`}>Timeline</span>
+                <button
+                  onClick={() => setTimelineOpen(!timelineOpen)}
+                  className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors duration-200 rounded-2xl ${theme === "light" ? "hover:bg-slate-50" : theme === "dark" ? "hover:bg-[#101218]/60" : theme === "spacePurple" ? "hover:bg-violet-800/20" : "hover:bg-white/5"}`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Clock className={`w-4 h-4 ${styles.accent}`} />
+                    <span className={`text-sm font-semibold ${styles.textSecondary}`}>Timeline</span>
+                  </div>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-300 ${styles.textMuted} ${timelineOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                <div
+                  className="overflow-hidden transition-all duration-300 ease-in-out"
+                  style={{
+                    maxHeight: timelineOpen ? "500px" : "0px",
+                    opacity: timelineOpen ? 1 : 0,
+                  }}
+                >
+                  <div className="px-5 pb-5 pt-1">
+                    <ScrollArea className="h-80 w-full pr-4">
+                      <div className="relative">
+                        <div
+                          className={`absolute left-[29px] top-2 bottom-2 w-px ${theme === "light" ? "bg-slate-200" : theme === "dark" ? "bg-[#1a1c22]" : theme === "spacePurple" ? "bg-violet-500/15" : "bg-white/10"}`}
+                        />
+                        <div className="space-y-4">
+                          {activeTimeline.map((item, index) => (
+                            <div key={index} className="flex gap-4 items-start relative">
+                              <span className={`text-sm font-mono font-semibold ${styles.accent} min-w-[60px] relative z-10`}>
+                                {item.year}
+                              </span>
+                              <span className={`min-w-0 flex-1 break-words text-sm leading-relaxed ${styles.textSecondary}`}>
+                                {item.event}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </ScrollArea>
+                  </div>
                 </div>
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${styles.textMuted} ${timelineOpen ? "rotate-180" : ""}`}
-                />
-              </button>
+              </div>
 
               <div
-                className="overflow-hidden transition-all duration-300 ease-in-out"
-                style={{
-                  maxHeight: timelineOpen ? "500px" : "0px",
-                  opacity: timelineOpen ? 1 : 0,
-                }}
+                className={`rounded-2xl border ${styles.cardBg} transition-all duration-300 shadow-lg ${theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/5"}`}
               >
-                <div className="px-5 pb-5 pt-1">
-                  <div className="relative">
-                    {/* Vertical connector line */}
-                    <div
-                      className={`absolute left-[29px] top-2 bottom-2 w-px ${theme === "light" ? "bg-slate-200" : theme === "dark" ? "bg-[#1a1c22]" : theme === "spacePurple" ? "bg-violet-500/15" : "bg-white/10"
-                        }`}
-                    />
+                <button
+                  onClick={() => setNotesOpen(!notesOpen)}
+                  className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors duration-200 rounded-2xl ${theme === "light" ? "hover:bg-slate-50" : theme === "dark" ? "hover:bg-[#101218]/60" : theme === "spacePurple" ? "hover:bg-violet-800/20" : "hover:bg-white/5"}`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <StickyNote className={`w-4 h-4 ${styles.accent}`} />
+                    <span className={`text-sm font-semibold ${styles.textSecondary}`}>Notes</span>
+                  </div>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-300 ${styles.textMuted} ${notesOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                <div
+                  className="overflow-hidden transition-all duration-300 ease-in-out"
+                  style={{
+                    maxHeight: notesOpen ? "500px" : "0px",
+                    opacity: notesOpen ? 1 : 0,
+                  }}
+                >
+                  <div className="px-5 pb-5 pt-1">
                     <div className="space-y-4">
-                      {timelineData.map((item, index) => (
-                        <div key={index} className="flex gap-4 items-start relative">
-                          <span className={`text-sm font-mono font-semibold ${styles.accent} min-w-[60px] relative z-10`}>
-                            {item.year}
-                          </span>
-                          <span className={`text-sm leading-relaxed ${styles.textSecondary}`}>{item.event}</span>
+                      {activeNotes.map((note, index) => (
+                        <div key={index}>
+                          <div className="flex gap-3 items-start">
+                            <span className={`text-sm font-semibold ${styles.accent} shrink-0`}>{"•"}</span>
+                            <p className={`text-sm leading-relaxed ${styles.textSecondary}`}>{note}</p>
+                          </div>
+                          {index < activeNotes.length - 1 && (
+                            <div
+                              className={`mt-4 border-b ${theme === "light" ? "border-slate-100" : theme === "dark" ? "border-[#1a1c22]/60" : theme === "spacePurple" ? "border-violet-500/10" : "border-white/5"}`}
+                            />
+                          )}
                         </div>
                       ))}
                     </div>
@@ -238,97 +445,83 @@ export default function ExplorerContent() {
                 </div>
               </div>
             </div>
+          )}
+        </div>
 
-            {/* Notes Card */}
-            <div
-              className={`rounded-2xl border ${styles.cardBg} transition-all duration-300 shadow-lg ${theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/5"
-                }`}
-            >
-              <button
-                onClick={() => setNotesOpen(!notesOpen)}
-                className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors duration-200 rounded-2xl ${theme === "light" ? "hover:bg-slate-50" : theme === "dark" ? "hover:bg-[#101218]/60" : theme === "spacePurple" ? "hover:bg-violet-800/20" : "hover:bg-white/5"
-                  }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <StickyNote className={`w-4 h-4 ${styles.accent}`} />
-                  <span className={`text-sm font-semibold ${styles.textSecondary}`}>Notes</span>
+        <div className="flex flex-col gap-4">
+          <div
+            className={`rounded-2xl border p-6 ${styles.cardBg} transition-all duration-300 shadow-xl ${theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/10"}`}
+          >
+            {isSearching ? (
+              <div className="space-y-5 animate-pulse">
+                <div className={`h-8 w-40 rounded-md ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`} />
+                <div className={`h-7 w-28 rounded-full ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`} />
+                <div className="space-y-3">
+                  <div className={`h-4 w-24 rounded ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`} />
+                  <div className={`h-4 w-full rounded ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`} />
+                  <div className={`h-4 w-11/12 rounded ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`} />
+                  <div className={`h-4 w-4/5 rounded ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`} />
                 </div>
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${styles.textMuted} ${notesOpen ? "rotate-180" : ""}`}
-                />
-              </button>
+                <div className="space-y-3">
+                  <div className={`h-4 w-28 rounded ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`} />
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <div key={index} className={`h-10 w-full rounded-md ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`} />
+                  ))}
+                </div>
+              </div>
+            ) : showNotFoundState ? (
+              <div className="min-h-[420px] flex items-center justify-center">
+                <div className="max-w-sm w-full text-center">
+                  <div
+                    className={`w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center ${theme === "dark"
+                        ? "bg-[#7c7cff]/15 ring-1 ring-[#7c7cff]/30"
+                        : theme === "spacePurple"
+                          ? "bg-violet-500/15 ring-1 ring-violet-400/30"
+                          : theme === "light"
+                            ? "bg-cyan-100 ring-1 ring-cyan-300/40"
+                            : "bg-cyan-500/15 ring-1 ring-cyan-400/30"
+                      }`}
+                  >
+                    <Telescope className={`w-6 h-6 ${theme === "dark" ? "text-[#a5a5ff]" : theme === "spacePurple" ? "text-violet-300" : "text-cyan-400"}`} />
+                  </div>
+                  <h2 className={`text-xl font-semibold ${styles.textPrimary}`}>No data found for "{lastSearchedQuery}"</h2>
+                  <p className={`mt-3 text-sm leading-relaxed ${styles.textMuted}`}>
+                    Search for a known astronomical object.
+                  </p>
+                  {searchError && <p className={`mt-4 text-sm leading-relaxed ${styles.textMuted}`}>{searchError}</p>}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <h2 className={`text-2xl font-bold ${styles.textPrimary}`}>{activeName}</h2>
+                  <span className={`inline-block mt-2 px-3 py-1 rounded-full text-sm ${styles.accentBg}`}>
+                    {activeType}
+                  </span>
+                </div>
 
-              <div
-                className="overflow-hidden transition-all duration-300 ease-in-out"
-                style={{
-                  maxHeight: notesOpen ? "500px" : "0px",
-                  opacity: notesOpen ? 1 : 0,
-                }}
-              >
-                <div className="px-5 pb-5 pt-1">
-                  <div className="space-y-4">
-                    {notesData.map((note, index) => (
-                      <div key={index}>
-                        <div className="flex gap-3 items-start">
-                          <span className={`text-sm font-semibold ${styles.accent} shrink-0`}>{"•"}</span>
-                          <p className={`text-sm leading-relaxed ${styles.textSecondary}`}>{note}</p>
-                        </div>
-                        {index < notesData.length - 1 && (
-                          <div
-                            className={`mt-4 border-b ${theme === "light" ? "border-slate-100" : theme === "dark" ? "border-[#1a1c22]/60" : theme === "spacePurple" ? "border-violet-500/10" : "border-white/5"
-                              }`}
-                          />
-                        )}
+                <div>
+                  <h3 className={`text-sm font-semibold mb-2 ${styles.textSecondary}`}>AI Analysis</h3>
+                  <p className={`text-sm leading-relaxed ${styles.textSecondary}`}>{activeAnalysis}</p>
+                </div>
+
+                <div>
+                  <h3 className={`text-sm font-semibold mb-3 ${styles.textSecondary}`}>Key Properties</h3>
+                  <div className="space-y-2">
+                    {activeProperties.map((prop) => (
+                      <div
+                        key={prop.label}
+                        className={`flex justify-between py-2 border-b ${theme === "light" ? "border-slate-200" : theme === "dark" ? "border-[#1a1c22]" : "border-white/10"}`}
+                      >
+                        <span className={`text-sm ${styles.textMuted}`}>{prop.label}</span>
+                        <span className={`text-sm font-medium ${styles.textPrimary}`}>{prop.value}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-        </div>
-
-        {/* Right Column - Object Info */}
-        <div className="flex flex-col gap-4">
-          <div
-            className={`rounded-2xl border p-6 ${styles.cardBg} transition-all duration-300 shadow-xl ${theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/10"}`}
-          >
-            <div className="space-y-4">
-              <div>
-                <h2 className={`text-2xl font-bold ${styles.textPrimary}`}>{objectData.name}</h2>
-                <span className={`inline-block mt-2 px-3 py-1 rounded-full text-sm ${styles.accentBg}`}>
-                  {objectData.type}
-                </span>
-              </div>
-
-              <div>
-                <h3 className={`text-sm font-semibold mb-2 ${styles.textSecondary}`}>AI Analysis</h3>
-                <p className={`text-sm leading-relaxed ${styles.textSecondary}`}>{objectData.analysis}</p>
-              </div>
-
-              <div>
-                <h3 className={`text-sm font-semibold mb-3 ${styles.textSecondary}`}>Key Properties</h3>
-                <div className="space-y-2">
-                  {objectData.properties.map((prop) => (
-                    <div
-                      key={prop.label}
-                      className={`flex justify-between py-2 border-b ${theme === "light"
-                          ? "border-slate-200"
-                          : theme === "dark"
-                            ? "border-[#1a1c22]"
-                            : "border-white/10"
-                        }`}
-                    >
-                      <span className={`text-sm ${styles.textMuted}`}>{prop.label}</span>
-                      <span className={`text-sm font-medium ${styles.textPrimary}`}>{prop.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-
         </div>
       </div>
     </div>

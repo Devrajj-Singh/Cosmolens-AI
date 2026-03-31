@@ -15,6 +15,7 @@ import {
   LogOut,
   User,
   Lock,
+  Search,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -123,7 +124,23 @@ function AIStatusBadge({
 
 export function CosmoNavbar() {
   const router = useRouter()
-  const { theme, setTheme, activeModule, setActiveModule, isAuthenticated, setIsAuthenticated, user, setUser, explorerAIStatus, planetAIStatus } = useCosmoTheme()
+  const {
+    theme,
+    setTheme,
+    activeModule,
+    setActiveModule,
+    isAuthenticated,
+    setIsAuthenticated,
+    user,
+    setUser,
+    explorerAIStatus,
+    explorerSearchTerm,
+    setExplorerSearchTerm,
+    explorerSearchHasError,
+    setExplorerSearchHasError,
+    submitExplorerSearch,
+    planetAIStatus,
+  } = useCosmoTheme()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false)
   const themeDropdownRef = useRef<HTMLDivElement>(null)
@@ -181,6 +198,12 @@ export function CosmoNavbar() {
     setIsAuthenticated(false)
     setSidebarOpen(false)
     router.push("/")
+  }
+
+  const handleExplorerSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!explorerSearchTerm.trim()) return
+    submitExplorerSearch()
   }
 
   const ThemeDropdownPortal = () => {
@@ -386,8 +409,32 @@ export function CosmoNavbar() {
           </div>
         </div>
 
-          {/* Center: Segmented Tab Control */}
+          {/* Center: Search + Segmented Tab Control */}
           <div className="flex items-center gap-2">
+          {activeModule === "explorer" && (
+            <form onSubmit={handleExplorerSearchSubmit} className="hidden lg:flex items-center gap-2 mr-2">
+              <div className="relative">
+                <Search className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${styles.textMuted}`} />
+                <Input
+                  value={explorerSearchTerm}
+                  onChange={(event) => {
+                    setExplorerSearchTerm(event.target.value)
+                    if (explorerSearchHasError) {
+                      setExplorerSearchHasError(false)
+                    }
+                  }}
+                  placeholder="Search space objects..."
+                  className={`w-72 h-10 pl-9 ${styles.inputBg} ${explorerSearchHasError ? "border-red-400/50 focus-visible:ring-red-400/30" : ""}`}
+                />
+              </div>
+              <Button
+                type="submit"
+                className={`${styles.buttonBg} border ${styles.textPrimary} transition-all duration-200 hover:shadow-lg hover:shadow-cyan-500/20 active:scale-[0.98]`}
+              >
+                Search
+              </Button>
+            </form>
+          )}
           {/* Segmented Control */}
           <div
             className={`relative flex rounded-xl p-1 border transition-all duration-300 ${

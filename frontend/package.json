@@ -6,7 +6,8 @@
     "build": "next build",
     "dev": "node scripts/dev-stack.mjs",
     "dev:stack": "node scripts/dev-stack.mjs",
-    "dev:app": "node scripts/dev-app.mjs",
+    "dev:app": "node scripts/dev-stack.mjs",
+    "dev:web-only": "node scripts/dev-app.mjs",
     "lint": "eslint .",
     "start": "next start"
   },
@@ -68,6 +69,7 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "firebase-tools": "^13.35.1",
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",

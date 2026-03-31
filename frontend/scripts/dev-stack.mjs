@@ -17,6 +17,7 @@ const bundledNodeExecutable = isWindows
 const bundledJavaHome = isWindows
   ? path.join(repoRoot, ".tools", "jdk-21.0.10+7-jre")
   : null
+const firebaseCliPath = path.join(frontendDir, "node_modules", "firebase-tools", "lib", "bin", "firebase.js")
 const pythonExecutable = isWindows
   ? path.join(repoRoot, ".venv", "Scripts", "python.exe")
   : path.join(repoRoot, ".venv", "bin", "python")
@@ -135,27 +136,52 @@ function getNodeExecutable() {
 }
 
 function getFirebaseEnv() {
-  if (!bundledJavaHome) {
-    return {}
-  }
+  const javaHomeCandidates = [
+    bundledJavaHome,
+    process.env.JAVA_HOME,
+    isWindows ? findInstalledTemurinJavaHome() : null,
+  ].filter(Boolean)
 
-  const javaExecutable = path.join(bundledJavaHome, "bin", isWindows ? "java.exe" : "java")
-  if (!fs.existsSync(javaExecutable)) {
+  const resolvedJavaHome = javaHomeCandidates.find((candidate) => {
+    const javaExecutable = path.join(candidate, "bin", isWindows ? "java.exe" : "java")
+    return fs.existsSync(javaExecutable)
+  })
+
+  if (!resolvedJavaHome) {
     return {}
   }
 
   const currentPath = process.env.PATH ?? ""
-  const javaBin = path.join(bundledJavaHome, "bin")
+  const javaBin = path.join(resolvedJavaHome, "bin")
 
   return {
-    JAVA_HOME: bundledJavaHome,
+    JAVA_HOME: resolvedJavaHome,
     PATH: currentPath ? `${javaBin}${path.delimiter}${currentPath}` : javaBin,
   }
 }
 
+function findInstalledTemurinJavaHome() {
+  if (!isWindows) {
+    return null
+  }
+
+  const adoptiumDir = path.join("C:\\Program Files", "Eclipse Adoptium")
+  if (!fs.existsSync(adoptiumDir)) {
+    return null
+  }
+
+  const candidate = fs
+    .readdirSync(adoptiumDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.join(adoptiumDir, entry.name))
+    .find((entryPath) => fs.existsSync(path.join(entryPath, "bin", "java.exe")))
+
+  return candidate ?? null
+}
+
 function startProcess(name, command, args, cwd, extraEnv = {}) {
-  const spawnCommand = isWindows ? "cmd.exe" : command
-  const spawnArgs = isWindows ? ["/d", "/s", "/c", command, ...args] : args
+  const spawnCommand = isWindows && command === "npx" ? "cmd.exe" : command
+  const spawnArgs = isWindows && command === "npx" ? ["/d", "/s", "/c", "npx", ...args] : args
   const child = spawn(spawnCommand, spawnArgs, {
     cwd,
     env: { ...baseEnv, ...extraEnv },
@@ -240,6 +266,7 @@ if (!process.env.npm_execpath) {
 
 async function main() {
   requireFile(pythonExecutable, "Backend Python executable")
+  requireFile(firebaseCliPath, "Firebase CLI")
   cleanupPreviousRun()
   await assertFixedPortsAvailable()
 
@@ -250,8 +277,8 @@ async function main() {
   log("Starting Firebase emulators...")
   startProcess(
     "firebase",
-    "npx",
-    ["firebase-tools@13.35.1", "emulators:start", "--only", "firestore,auth", "--project", "cosmolens-ai-local"],
+    getNodeExecutable(),
+    [firebaseCliPath, "emulators:start", "--only", "firestore,auth", "--project", "cosmolens-ai-local"],
     repoRoot,
     getFirebaseEnv(),
   )

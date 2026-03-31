@@ -76,6 +76,26 @@ Do NOT modify folders outside your responsibility without discussion.
 
 ---
 
+## 💻 Local Development
+
+Run these commands from the repository root:
+
+```bash
+npm install --prefix frontend
+npm run dev
+```
+
+`npm run dev` starts the frontend, backend, and Firebase emulators together and stops all of them together on Linux, macOS, and Windows.
+
+Useful variants:
+
+- `npm run dev:app` starts only the frontend app
+- `npm run dev:web-only` starts only the frontend app without the local stack wrapper
+
+Backend setup still requires the Python virtual environment in `/.venv` with `backend/requirements.txt` installed.
+
+---
+
 ## 🔐 Repository Policy
 
 - This is a private development repository.

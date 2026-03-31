@@ -1,0 +1,12 @@
+{
+  "name": "cosmolens-ai",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev:stack",
+    "dev:stack": "npm --prefix frontend run dev:stack",
+    "dev:app": "npm --prefix frontend run dev:app",
+    "dev:web-only": "npm --prefix frontend run dev:web-only",
+    "build": "npm --prefix frontend run build",
+    "lint": "npm --prefix frontend run lint"
+  }
+}

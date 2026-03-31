@@ -2,16 +2,16 @@
 
 import { subscribeToAuthState } from "@/lib/firebase/auth"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Rocket, Globe, Layers, Cpu, BarChart3, SlidersHorizontal } from "lucide-react"
+import { Rocket, Globe, Layers, Cpu, BarChart3, SlidersHorizontal, Volume2, VolumeX } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 
 const team = [
-  { name: "Alex Chen", role: "Project Lead / DevOps", initials: "AC" },
-  { name: "Maya Rodriguez", role: "Frontend Developer", initials: "MR" },
-  { name: "James Liu", role: "Backend Developer", initials: "JL" },
-  { name: "Sarah Kim", role: "Backend Developer", initials: "SK" },
-  { name: "David Park", role: "Tester", initials: "DP" },
+  { name: "Devraj Singh", role: "Project Lead / Overall", initials: "DS" },
+  { name: "Aryan Sirohi", role: "Frontend Developer", initials: "AS" },
+  { name: "Vaishnavee", role: "Frontend Developer / Tester", initials: "V" },
+  { name: "Tanmay Goyal", role: "Backend Developer / Overall", initials: "TG" },
+  { name: "Ayleen Toppo", role: "Backend Developer", initials: "AT" },
 ]
 
 const architectureItems = [
@@ -46,12 +46,23 @@ function HomePageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isAuth, setIsAuth] = useState(searchParams.get("auth") !== "false")
+  const [isMuted, setIsMuted] = useState(true)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
 
   useEffect(() => {
     return subscribeToAuthState((user) => {
       setIsAuth(Boolean(user))
     })
   }, [])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    video.volume = 0.18
+    video.muted = isMuted
+    void video.play().catch(() => {})
+  }, [isMuted])
 
   const handleLaunchExplorer = () => {
     router.push(isAuth ? "/explorer" : "/explorer?auth=false")
@@ -61,16 +72,39 @@ function HomePageInner() {
     router.push(isAuth ? "/planet-ai" : "/planet-ai?auth=false")
   }
 
+  const toggleAudio = async () => {
+    const video = videoRef.current
+    if (!video) return
+
+    const nextMuted = !isMuted
+    setIsMuted(nextMuted)
+    video.volume = 0.18
+    video.muted = nextMuted
+    await video.play().catch(() => {})
+  }
+
   return (
     <main className="relative min-h-screen w-full overflow-x-hidden">
-      {/* Deep space nebula background - fixed */}
-      <div
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url('/deep-space-nebula-with-stars-purple-blue-cosmic-ga.jpg')`,
-        }}
-      />
-      <div className="fixed inset-0 bg-black/70" />
+      <video
+        ref={videoRef}
+        className="fixed inset-0 h-full w-full object-cover"
+        autoPlay
+        loop
+        muted
+        playsInline
+      >
+        <source src="/space-bg.mp4" type="video/mp4" />
+      </video>
+      <div className="fixed inset-0 bg-black/55" />
+
+      <button
+        type="button"
+        onClick={toggleAudio}
+        className="fixed right-4 top-4 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition hover:bg-black/55"
+        aria-label={isMuted ? "Turn sound on" : "Turn sound off"}
+      >
+        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+      </button>
 
       {/* Animated star particles */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">

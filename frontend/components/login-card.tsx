@@ -47,12 +47,13 @@ export function LoginCard() {
 
   return (
     <div className="relative z-10 w-full max-w-md mx-4">
-      <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/30 via-blue-500/20 to-purple-500/30 rounded-3xl blur-2xl opacity-60" />
+      <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/30 via-blue-500/20 to-purple-500/30 rounded-3xl blur-2xl opacity-55" />
 
-      <div className="relative backdrop-blur-2xl bg-white/[0.08] border border-white/20 rounded-2xl p-8 shadow-2xl shadow-black/40">
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-cyan-500/40 via-blue-500/30 to-purple-500/40 opacity-60 blur-sm" />
-        <div className="absolute inset-0 rounded-2xl bg-slate-900/50 backdrop-blur-xl" />
+      <div className="relative overflow-hidden backdrop-blur-xl bg-white/[0.02] border border-white/16 rounded-2xl p-8 shadow-2xl shadow-black/25">
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/14 via-white/[0.03] to-transparent pointer-events-none" />
+        <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-cyan-500/35 via-blue-500/25 to-purple-500/35 opacity-55 blur-sm" />
+        <div className="absolute inset-0 rounded-2xl bg-slate-900/16 backdrop-blur-xl" />
+        <div className="absolute inset-x-6 top-0 h-px bg-white/30" />
 
         <div className="relative">
           {/* Logo and branding */}

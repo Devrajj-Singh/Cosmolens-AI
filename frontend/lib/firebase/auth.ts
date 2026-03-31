@@ -47,12 +47,6 @@ export async function getIdToken() {
 }
 
 
-export async function getUserProfile(uid: string) {
-  const snapshot = await getDoc(doc(db, "users", uid))
-  return snapshot.exists() ? snapshot.data() : null
-}
-
-
 export function subscribeToAuthState(callback: (user: User | null) => void) {
   return onAuthStateChanged(auth, callback)
 }

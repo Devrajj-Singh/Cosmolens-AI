@@ -13,14 +13,19 @@ export function CosmoBackground() {
     <>
       {theme === "nebula" && (
         <>
-          <div
-            className="fixed inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-700 ease-in-out will-change-transform"
+          <video
+            className="fixed inset-0 h-full w-full object-cover transition-transform duration-700 ease-in-out will-change-transform"
+            autoPlay
+            loop
+            muted
+            playsInline
             style={{
-              backgroundImage: `url('/deep-space-nebula-with-stars-purple-blue-cosmic-ga.jpg')`,
               transform: `translate(${parallaxX}, ${parallaxY}) scale(1.08)`,
             }}
-          />
-          <div className="fixed inset-0 bg-black/60" />
+          >
+            <source src="/space-bg.mp4" type="video/mp4" />
+          </video>
+          <div className="fixed inset-0 bg-black/55" />
           <div
             className="fixed inset-0 overflow-hidden pointer-events-none transition-transform duration-700 ease-in-out will-change-transform"
             style={{
@@ -74,6 +79,49 @@ export function CosmoBackground() {
               <div
                 key={i}
                 className="absolute w-1 h-1 bg-violet-200 rounded-full animate-pulse"
+                style={{
+                  left: `${((i * 37 + 13) % 100)}%`,
+                  top: `${((i * 53 + 7) % 100)}%`,
+                  animationDelay: `${(i * 0.3) % 3}s`,
+                  animationDuration: `${2 + (i % 3)}s`,
+                  opacity: 0.2 + ((i % 5) * 0.1),
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {theme === "pink" && (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div
+            className="absolute inset-0 bg-gradient-to-br from-fuchsia-950 via-pink-950/70 to-rose-950 transition-transform duration-700 ease-in-out will-change-transform"
+            style={{
+              transform: `translate(${parallaxX}, ${parallaxY}) scale(1.06)`,
+            }}
+          />
+          <div
+            className="absolute top-1/4 -left-1/4 h-1/2 w-1/2 rounded-full bg-pink-500/20 blur-3xl transition-transform duration-700 ease-in-out"
+            style={{
+              transform: `translate(${activeModule === "explorer" ? "0px" : "-20px"}, 0px)`,
+            }}
+          />
+          <div
+            className="absolute bottom-1/4 -right-1/4 h-1/2 w-1/2 rounded-full bg-rose-400/20 blur-3xl transition-transform duration-700 ease-in-out"
+            style={{
+              transform: `translate(${activeModule === "explorer" ? "0px" : "20px"}, 0px)`,
+            }}
+          />
+          <div
+            className="absolute inset-0 transition-transform duration-700 ease-in-out will-change-transform"
+            style={{
+              transform: `translate(${activeModule === "explorer" ? "0px" : "-10px"}, ${activeModule === "explorer" ? "0px" : "-5px"})`,
+            }}
+          >
+            {Array.from({ length: 30 }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute h-1 w-1 rounded-full bg-pink-100 animate-pulse"
                 style={{
                   left: `${((i * 37 + 13) % 100)}%`,
                   top: `${((i * 53 + 7) % 100)}%`,

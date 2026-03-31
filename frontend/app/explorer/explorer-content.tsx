@@ -1,11 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
-  RotateCcw,
   ZoomIn,
-  Move,
   RefreshCw,
   Clock,
   StickyNote,
@@ -17,6 +15,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { PlanetModelViewer, type PlanetModelViewerHandle } from "@/components/planet-model-viewer"
 import { useCosmoTheme } from "@/components/cosmo-theme-context"
 import { fetchLiveExplorerObject, type ExplorerObject } from "@/lib/api/explorer"
 import { themeStyles } from "@/lib/themes"
@@ -64,6 +63,28 @@ const fallbackObject: ExplorerObject = {
   image_url: null,
   source: null,
   nasa_id: null,
+}
+
+const planetModelMap: Record<string, { path: string; label: string }> = {
+  earth: { path: "/models/earth.glb", label: "Earth" },
+  mars: { path: "/models/mars.glb", label: "Mars" },
+  jupiter: { path: "/models/jupiter.glb", label: "Jupiter" },
+  mercury: { path: "/models/mercury.glb", label: "Mercury" },
+  neptune: { path: "/models/neptune.glb", label: "Neptune" },
+  pluto: { path: "/models/pluto.glb", label: "Pluto" },
+  sun: { path: "/models/sun.glb", label: "Sun" },
+  moon: { path: "/models/moon.glb", label: "Moon" },
+  venus: { path: "/models/venus.glb", label: "Venus" },
+  saturn: { path: "/models/saturn.glb", label: "Saturn" },
+  uranus: { path: "/models/uranus.glb", label: "Uranus" },
+  "black hole": { path: "/models/blackhole.glb", label: "Black Hole" },
+  blackhole: { path: "/models/blackhole.glb", label: "Black Hole" },
+  nebula: { path: "/models/nebula.glb", label: "Nebula" },
+}
+
+function getPlanetModel(name: string) {
+  const normalizedName = name.trim().toLowerCase()
+  return planetModelMap[normalizedName] ?? null
 }
 
 function StateOverlay({
@@ -132,6 +153,7 @@ export default function ExplorerContent() {
   const [objectFound, setObjectFound] = useState(true)
   const [hasSearched, setHasSearched] = useState(false)
   const [lastSearchedQuery, setLastSearchedQuery] = useState("")
+  const viewerRef = useRef<PlanetModelViewerHandle | null>(null)
   const styles = themeStyles[theme]
 
   const activeName = searchResult.name
@@ -144,6 +166,7 @@ export default function ExplorerContent() {
   const showNotFoundState = hasSearched && !isSearching && !objectFound
   const showDataPanels = !isSearching && objectFound
   const modelStateClass = isSearching ? "blur-[2px] opacity-60" : showNotFoundState ? "blur-sm opacity-40" : ""
+  const activePlanetModel = getPlanetModel(activeName)
 
   const runSearch = async (rawQuery: string) => {
     const trimmedQuery = rawQuery.trim()
@@ -207,75 +230,91 @@ export default function ExplorerContent() {
           >
             <div className="h-full flex flex-col">
               <div className="flex-1 flex items-center justify-center py-4">
-                <div className="relative">
-                  <div
-                    className={`absolute -inset-4 rounded-full blur-xl ${theme === "spacePurple" ? "bg-gradient-to-r from-violet-500/20 to-blue-500/20 shadow-violet-500/30" : theme === "dark" ? "bg-gradient-to-r from-[#7c7cff]/20 to-blue-500/20" : `bg-gradient-to-r from-cyan-500/20 to-blue-500/20 ${styles.glowColor}`}`}
-                  />
-                  <div
-                    className={`relative w-72 h-72 lg:w-80 lg:h-80 rounded-full border-2 ${theme === "light"
-                        ? "border-slate-300 bg-slate-100"
-                        : theme === "spacePurple"
-                          ? "border-violet-500/30 bg-purple-950/50"
-                          : theme === "dark"
-                            ? "border-[#7c7cff]/30 bg-[#050507]/50"
-                            : "border-cyan-500/30 bg-slate-900/50"
-                      } flex items-center justify-center overflow-hidden transition-all duration-300 ${modelStateClass}`}
-                  >
-                    <div className="absolute inset-8 rounded-full overflow-hidden">
-                      <div className="absolute inset-0 animate-spin" style={{ animationDuration: "30s" }}>
-                        <div
-                          className={`absolute inset-0 rounded-full blur-sm ${theme === "spacePurple" ? "bg-gradient-conic from-violet-500/40 via-blue-500/20 to-violet-500/40" : theme === "dark" ? "bg-gradient-conic from-[#7c7cff]/40 via-purple-500/20 to-[#7c7cff]/40" : "bg-gradient-conic from-cyan-500/40 via-purple-500/20 to-cyan-500/40"}`}
-                        />
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-4 h-4 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full shadow-lg shadow-yellow-500/50" />
-                      </div>
-                      <div className="absolute inset-0 animate-spin" style={{ animationDuration: "20s" }}>
-                        {Array.from({ length: 100 }).map((_, i) => {
-                          const angle = (i / 100) * Math.PI * 4
-                          const radius = 20 + (i / 100) * 100
-                          const x = Math.cos(angle) * radius + 128
-                          const y = Math.sin(angle) * radius + 128
-                          return (
+                <div className={`w-full max-w-4xl transition-all duration-300 ${modelStateClass}`}>
+                  {activePlanetModel ? (
+                    <PlanetModelViewer
+                      ref={viewerRef}
+                      modelPath={activePlanetModel.path}
+                      modelLabel={activePlanetModel.label}
+                    />
+                  ) : (
+                    <div className="relative flex items-center justify-center py-6">
+                      <div
+                        className={`absolute -inset-4 rounded-full blur-xl ${theme === "spacePurple" ? "bg-gradient-to-r from-violet-500/20 to-blue-500/20 shadow-violet-500/30" : theme === "dark" ? "bg-gradient-to-r from-[#7c7cff]/20 to-blue-500/20" : `bg-gradient-to-r from-cyan-500/20 to-blue-500/20 ${styles.glowColor}`}`}
+                      />
+                      <div
+                        className={`relative w-72 h-72 lg:w-80 lg:h-80 rounded-full border-2 ${theme === "light"
+                            ? "border-slate-300 bg-slate-100"
+                            : theme === "spacePurple"
+                              ? "border-violet-500/30 bg-purple-950/50"
+                              : theme === "dark"
+                                ? "border-[#7c7cff]/30 bg-[#050507]/50"
+                                : "border-cyan-500/30 bg-slate-900/50"
+                          } flex items-center justify-center overflow-hidden transition-all duration-300`}
+                      >
+                        <div className="absolute inset-8 rounded-full overflow-hidden">
+                          <div className="absolute inset-0 animate-spin" style={{ animationDuration: "30s" }}>
                             <div
-                              key={i}
-                              className={`absolute w-1 h-1 rounded-full ${theme === "spacePurple" ? "bg-violet-300/60" : theme === "dark" ? "bg-[#a5a5ff]/60" : "bg-cyan-300/60"}`}
-                              style={{
-                                left: `${((x / 256) * 100).toFixed(4)}%`,
-                                top: `${((y / 256) * 100).toFixed(4)}%`,
-                                opacity: parseFloat((0.3 + ((i * 7) % 10) * 0.07).toFixed(2)),
-                              }}
+                              className={`absolute inset-0 rounded-full blur-sm ${theme === "spacePurple" ? "bg-gradient-conic from-violet-500/40 via-blue-500/20 to-violet-500/40" : theme === "dark" ? "bg-gradient-conic from-[#7c7cff]/40 via-purple-500/20 to-[#7c7cff]/40" : "bg-gradient-conic from-cyan-500/40 via-purple-500/20 to-cyan-500/40"}`}
                             />
-                          )
-                        })}
+                          </div>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-4 h-4 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full shadow-lg shadow-yellow-500/50" />
+                          </div>
+                          <div className="absolute inset-0 animate-spin" style={{ animationDuration: "20s" }}>
+                            {Array.from({ length: 100 }).map((_, i) => {
+                              const angle = (i / 100) * Math.PI * 4
+                              const radius = 20 + (i / 100) * 100
+                              const x = Math.cos(angle) * radius + 128
+                              const y = Math.sin(angle) * radius + 128
+
+                              return (
+                                <div
+                                  key={i}
+                                  className={`absolute w-1 h-1 rounded-full ${theme === "spacePurple" ? "bg-violet-300/60" : theme === "dark" ? "bg-[#a5a5ff]/60" : "bg-cyan-300/60"}`}
+                                  style={{
+                                    left: `${((x / 256) * 100).toFixed(4)}%`,
+                                    top: `${((y / 256) * 100).toFixed(4)}%`,
+                                    opacity: parseFloat((0.3 + ((i * 7) % 10) * 0.07).toFixed(2)),
+                                  }}
+                                />
+                              )
+                            })}
+                          </div>
+                        </div>
+                        <span className={`absolute top-4 left-4 text-xs ${styles.textMuted}`}>WebGL</span>
+                        <span className={`absolute top-4 right-4 text-xs ${styles.textMuted}`}>3D</span>
+                        <span className={`absolute bottom-4 left-4 text-xs ${styles.textMuted}`}>{activeName}</span>
                       </div>
                     </div>
-                    <span className={`absolute top-4 left-4 text-xs ${styles.textMuted}`}>WebGL</span>
-                    <span className={`absolute top-4 right-4 text-xs ${styles.textMuted}`}>3D</span>
-                    <span className={`absolute bottom-4 left-4 text-xs ${styles.textMuted}`}>{activeName}</span>
-                  </div>
+                  )}
                 </div>
               </div>
 
               <div className="flex items-center justify-center gap-3 mt-4">
                 {[
-                  { icon: RotateCcw, label: "Rotate" },
-                  { icon: ZoomIn, label: "Zoom" },
-                  { icon: Move, label: "Pan" },
-                  { icon: RefreshCw, label: "Reset" },
+                  { icon: ZoomIn, label: "Zoom In", onClick: () => viewerRef.current?.zoomIn() },
+                  { icon: ZoomIn, label: "Zoom Out", onClick: () => viewerRef.current?.zoomOut(), flip: true },
+                  { icon: RefreshCw, label: "Reset", onClick: () => viewerRef.current?.resetView() },
                 ].map((btn) => (
                   <Button
                     key={btn.label}
                     variant="ghost"
+                    onClick={btn.onClick}
+                    disabled={!activePlanetModel}
                     className={`${styles.buttonBg} border gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-500/20 active:scale-95`}
                   >
-                    <btn.icon className="w-4 h-4" />
+                    <btn.icon className={`w-4 h-4 ${btn.flip ? "rotate-180" : ""}`} />
                     <span className={styles.textPrimary}>{btn.label}</span>
                   </Button>
                 ))}
               </div>
 
-              <p className={`text-center text-xs mt-4 ${styles.textMuted}`}>AI Model Ready - WebGL Interactive</p>
+              <p className={`text-center text-xs mt-4 ${styles.textMuted}`}>
+                {activePlanetModel
+                  ? `${activePlanetModel.label} 3D model loaded from /public/models`
+                  : "AI Model Ready - WebGL Interactive"}
+              </p>
               {isSearching && <p className={`text-center text-xs mt-2 ${styles.textMuted}`}>Searching explorer data...</p>}
             </div>
 
@@ -352,7 +391,6 @@ export default function ExplorerContent() {
           >
             {[
               { label: "Data Source", value: activeSourceLabel },
-              { label: "Visualization Engine", value: "WebGL Renderer" },
               { label: "Last Updated", value: new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1.5">

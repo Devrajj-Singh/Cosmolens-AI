@@ -1,4 +1,4 @@
-export type Theme = "dark" | "nebula" | "light" | "spacePurple"
+export type Theme = "dark" | "nebula" | "light" | "spacePurple" | "pink"
 
 export const themeStyles = {
   dark: {
@@ -73,6 +73,24 @@ export const themeStyles = {
     glowColor: "shadow-violet-500/30",
     panelBg: "#1a0a2e",
   },
+  pink: {
+    bg: "bg-fuchsia-950",
+    cardBg: "bg-pink-900/35 border-pink-400/30 backdrop-blur-xl",
+    textPrimary: "text-pink-50",
+    textSecondary: "text-pink-100/75",
+    textMuted: "text-pink-200/50",
+    accent: "text-pink-300",
+    accentBg: "bg-pink-500/20 text-pink-200",
+    buttonBg: "bg-pink-900/45 hover:bg-pink-800/55 border-pink-400/35",
+    inputBg: "bg-pink-950/35 border-pink-400/30",
+    sidebarBg: "bg-fuchsia-950/55 backdrop-blur-2xl",
+    sidebarBorder:
+      "border-pink-400/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_0_30px_rgba(236,72,153,0.16)]",
+    scrollbarTrack: "bg-pink-950/30",
+    scrollbarThumb: "bg-pink-400/40 hover:bg-pink-400/60",
+    glowColor: "shadow-pink-500/30",
+    panelBg: "#2a0a23",
+  },
 }
 
 export const themeOptions: { id: Theme; label: string }[] = [
@@ -80,4 +98,5 @@ export const themeOptions: { id: Theme; label: string }[] = [
   { id: "nebula", label: "Nebula" },
   { id: "light", label: "Light" },
   { id: "spacePurple", label: "Space Purple" },
+  { id: "pink", label: "Pink" },
 ]

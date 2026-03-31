@@ -19,6 +19,9 @@ __pycache__/
 *.pyd
 .ipynb_checkpoints/
 .env/
+.venv/
+.python-stdlib/
+.tmp/
 
 # ML models & datasets (too large for GitHub)
 ml/data/

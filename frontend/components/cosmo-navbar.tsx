@@ -30,6 +30,7 @@ const themeIcons: Record<Theme, typeof Sun> = {
   nebula: Sparkles,
   light: Sun,
   spacePurple: Palette,
+  pink: Palette,
 }
 
 // ---------------------------------------------------------------------------

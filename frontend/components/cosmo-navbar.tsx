@@ -202,7 +202,6 @@ export function CosmoNavbar() {
 
   const handleExplorerSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!explorerSearchTerm.trim()) return
     submitExplorerSearch()
   }
 

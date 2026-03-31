@@ -42,7 +42,7 @@ const objectData = {
   analysis:
     "NGC 1300 is a barred spiral galaxy located approximately 61 million light-years away in the constellation Eridanus. The galaxy is notable for its strongly defined bar structure, which contains a grand-design spiral pattern. AI analysis reveals complex dust lanes and active star-forming regions within the spiral arms.",
   properties: [
-    { label: "Distance", value: "61 million ly" },
+    { label: "Distance from Earth", value: "61 million light-years from Earth" },
     { label: "Type", value: "SB(s)bc" },
     { label: "Constellation", value: "Eridanus" },
     { label: "Diameter", value: "110,000 ly" },
@@ -59,7 +59,7 @@ const fallbackObject: ExplorerObject = {
   timeline: timelineData,
   notes: notesData,
   features: [],
-  distance: objectData.properties.find((prop) => prop.label === "Distance")?.value ?? null,
+  distance: objectData.properties.find((prop) => prop.label === "Distance from Earth")?.value ?? null,
   discovery: objectData.properties.find((prop) => prop.label === "Discovered")?.value ?? null,
   image_url: null,
   source: null,
@@ -148,6 +148,15 @@ export default function ExplorerContent() {
   const runSearch = async (rawQuery: string) => {
     const trimmedQuery = rawQuery.trim()
     if (!trimmedQuery) {
+      setSearchResult(fallbackObject)
+      setObjectFound(true)
+      setHasSearched(false)
+      setLastSearchedQuery("")
+      setSearchError(null)
+      setIsSearching(false)
+      setTimelineOpen(false)
+      setNotesOpen(false)
+      setExplorerSearchHasError(false)
       return
     }
 
@@ -187,7 +196,7 @@ export default function ExplorerContent() {
   useEffect(() => {
     if (explorerSearchVersion === 0) return
     void runSearch(explorerSearchTerm)
-  }, [explorerSearchTerm, explorerSearchVersion])
+  }, [explorerSearchVersion])
 
   return (
     <div className="p-4 lg:p-6">

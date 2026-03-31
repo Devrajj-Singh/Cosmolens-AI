@@ -32,6 +32,7 @@ WIKIPEDIA_HEADERS = {
     "User-Agent": "CosmoLensAI/1.0 (educational project)",
 }
 PROPERTY_FALLBACK = "\u2014"
+DISTANCE_LABEL = "Distance from Earth"
 COMMON_OBJECT_ALIASES = {
     "mars": "Mars",
     "mercury": "Mercury",
@@ -337,7 +338,7 @@ def _fallback_payload(query: str, local_item: dict | None) -> dict | None:
             f"It is known for {', '.join(local_item['features'][:2]).lower()}."
         ),
         "properties": [
-            {"label": "Distance", "value": local_item["distance"]},
+            {"label": DISTANCE_LABEL, "value": local_item["distance"]},
             {"label": "Type", "value": local_item["type"]},
             {"label": "Constellation", "value": "Not available"},
             {"label": "Diameter", "value": "Not available"},
@@ -400,7 +401,7 @@ Rules:
 - Write exactly 4 notes.
 - Write exactly 4 timeline items.
 - The `properties` array must be exactly these labels in this order:
-  1. Distance
+  1. Distance from Earth
   2. Type
   3. Constellation
   4. Diameter
@@ -533,7 +534,7 @@ def _truncate_text(value: str, limit: int) -> str:
 
 
 def _extract_property_value(label: str, full_text: str) -> str:
-    if label == "Distance":
+    if label == DISTANCE_LABEL:
         earth_patterns = [
             r"(?:about|approximately|around|nearly|roughly)?\s*([0-9][0-9,.\-\s]*(?:million|billion|thousand)?\s*(?:light[- ]years?|ly|AU|astronomical units?|parsecs?|pc|kiloparsecs?|kpc|megaparsecs?|mpc))\s+(?:away\s+from|from)\s+Earth",
             r"distance\s+from\s+Earth(?:\s+is|\s+of|:)?\s+([0-9][0-9,.\-\s]*(?:million|billion|thousand)?\s*(?:light[- ]years?|ly|AU|astronomical units?|parsecs?|pc|kiloparsecs?|kpc|megaparsecs?|mpc))",
@@ -546,7 +547,7 @@ def _extract_property_value(label: str, full_text: str) -> str:
                 return _clean_text(value)
 
     pattern_map = {
-        "Distance": [
+        DISTANCE_LABEL: [
             r"([0-9][0-9,.\-\s]*(?:million|billion|thousand)?\s*(?:light[- ]years?|ly|AU|astronomical units?|parsecs?|pc|kiloparsecs?|kpc|megaparsecs?|mpc))(?:\s+away|\s+from)",
             r"distance(?:\s+of|\s+is|\s+to)?\s+([0-9][0-9,.\-\s]*(?:million|billion|thousand)?\s*(?:light[- ]years?|ly|AU|astronomical units?|parsecs?|pc|kiloparsecs?|kpc|megaparsecs?|mpc))",
             r"\b([0-9][0-9,.\-\s]*(?:million|billion|thousand)?\s*light[- ]years?)\b",
@@ -787,13 +788,30 @@ def _build_properties(object_type: str, full_text: str) -> list[dict]:
         agency = "NASA (most missions)"
 
     return [
-        {"label": "Distance", "value": _extract_property_value("Distance", full_text)},
+        {"label": DISTANCE_LABEL, "value": _extract_property_value(DISTANCE_LABEL, full_text)},
         {"label": "Type", "value": object_type or PROPERTY_FALLBACK},
         {"label": "Constellation", "value": constellation},
         {"label": "Diameter", "value": _extract_property_value("Diameter", full_text)},
         {"label": "Discovered", "value": _extract_property_value("Discovered", full_text)},
         {"label": "Agency", "value": agency},
     ]
+
+
+def _set_property(properties: list[dict], label: str, value: str) -> list[dict]:
+    updated = False
+    next_properties: list[dict] = []
+
+    for item in properties:
+        if item["label"] == label:
+            next_properties.append({"label": label, "value": value})
+            updated = True
+            continue
+        next_properties.append(item)
+
+    if not updated:
+        next_properties.append({"label": label, "value": value})
+
+    return next_properties
 
 
 def _extract_features(notes: list[str], full_text: str) -> list[str]:
@@ -965,6 +983,10 @@ def fetch_wikipedia_data(object_name: str) -> dict:
 
     object_type = _extract_type_from_summary(summary_payload, summary_text, full_text)
     properties = _build_properties(object_type, full_text)
+    local_item = _find_local_object(display_name) or _find_local_object(query)
+    if local_item and local_item.get("distance"):
+        properties = _set_property(properties, DISTANCE_LABEL, local_item["distance"])
+
     analysis_text = _build_analysis(summary_text, display_name)
     timeline = _extract_timeline(full_text)
     notes = _extract_notes(summary_text, full_text)
@@ -972,7 +994,7 @@ def fetch_wikipedia_data(object_name: str) -> dict:
     return {
         "name": display_name,
         "type": object_type,
-        "distance": next((item["value"] for item in properties if item["label"] == "Distance"), PROPERTY_FALLBACK),
+        "distance": next((item["value"] for item in properties if item["label"] == DISTANCE_LABEL), PROPERTY_FALLBACK),
         "discovery": next((item["value"] for item in properties if item["label"] == "Discovered"), PROPERTY_FALLBACK),
         "analysis": analysis_text,
         "properties": properties,

@@ -6,7 +6,7 @@
     "build": "next build",
     "dev": "node scripts/dev-stack.mjs",
     "dev:stack": "node scripts/dev-stack.mjs",
-    "dev:app": "node scripts/dev-stack.mjs",
+    "dev:app": "node scripts/dev-app.mjs",
     "dev:web-only": "node scripts/dev-app.mjs",
     "lint": "eslint .",
     "start": "next start"

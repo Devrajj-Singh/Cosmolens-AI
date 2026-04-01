@@ -37,7 +37,7 @@ const notesData = [
 
 const objectData = {
   name: "NGC 1300",
-  type: "Barred Spiral Galaxy",
+  type: "Barred Spiral Galaxy | Demo Data",
   analysis:
     "NGC 1300 is a barred spiral galaxy located approximately 61 million light-years away in the constellation Eridanus. The galaxy is notable for its strongly defined bar structure, which contains a grand-design spiral pattern. AI analysis reveals complex dust lanes and active star-forming regions within the spiral arms.",
   properties: [
@@ -406,6 +406,7 @@ export default function ExplorerContent() {
                 className={`rounded-2xl border ${styles.cardBg} transition-all duration-300 shadow-lg ${theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/5"}`}
               >
                 <button
+                  suppressHydrationWarning
                   onClick={() => setTimelineOpen(!timelineOpen)}
                   className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors duration-200 rounded-2xl ${theme === "light" ? "hover:bg-slate-50" : theme === "dark" ? "hover:bg-[#101218]/60" : theme === "spacePurple" ? "hover:bg-violet-800/20" : "hover:bg-white/5"}`}
                 >
@@ -453,6 +454,7 @@ export default function ExplorerContent() {
                 className={`rounded-2xl border ${styles.cardBg} transition-all duration-300 shadow-lg ${theme === "dark" ? "shadow-[#7c7cff]/5" : "shadow-cyan-500/5"}`}
               >
                 <button
+                  suppressHydrationWarning
                   onClick={() => setNotesOpen(!notesOpen)}
                   className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors duration-200 rounded-2xl ${theme === "light" ? "hover:bg-slate-50" : theme === "dark" ? "hover:bg-[#101218]/60" : theme === "spacePurple" ? "hover:bg-violet-800/20" : "hover:bg-white/5"}`}
                 >

@@ -216,7 +216,6 @@ export const PlanetModelViewer = forwardRef<PlanetModelViewerHandle, PlanetModel
 
         scene.add(gltf.scene)
         frameModel(gltf.scene)
-        console.log(`Loaded 3D model: ${modelPath}`)
         setStatus("ready")
       },
       undefined,
